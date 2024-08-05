@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('partials/head.ejs') %>
+  <!-- Ensure this path is correct -->
+  <title>Wallet</title>
+  <style>
+    .wallet-container {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .wallet-header {
+      margin-bottom: 20px;
+    }
+    .wallet-balance {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    .transaction-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .transaction-table th, .transaction-table td {
+      padding: 12px;
+      border: 1px solid #ddd;
+    }
+    .transaction-table th {
+      background-color: #f4f4f4;
+    }
+    .transaction-table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header'); %>
+
+  <div class="wallet-container">
+    <div class="wallet-header">
+      <h3>Wallet Balance</h3>
+      <div class="wallet-balance">
+        ₹ <%= (bal || 0 ).toFixed(2) %> <!-- Display balance with a default value -->
+      </div>
+    </div>
+
+    <h4>Recent Transactions</h4>
+    <% if (transactions.length > 0) { %>
+      <table class="transaction-table">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% transactions.forEach(transaction => { %>
+            <tr>
+              <td><%= transaction._id %></td>
+              <td><%= new Date(transaction.date).toLocaleDateString() %></td>
+              <td><%= transaction.description %></td>
+              <td>₹<%= transaction.amount.toFixed(2) %></td>
+              <td><%= transaction.type %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>No transactions available.</p>
+    <% } %>
+
+    <div class="wallet-actions mt-4">
+      <!-- Add Funds Form -->
+      <form action="/wallet" method="POST" class="mb-3">
+        <div class="form-group">
+          <label for="amount">Amount to Add:</label>
+          <input type="number" class="form-control" id="amount" name="amount" min="1" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Funds</button>
+      </form>
+    </div>
+  </div>
+
+  <%- include('partials/footer'); %>
+  <%- include('partials/foot'); %>
+</body>
+</html>

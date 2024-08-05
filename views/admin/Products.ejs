@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+
+  <body>
+    <%- include('partials/side.ejs') %>
+
+    <div class="screen-overlay"></div>
+
+    <main class="main-wrap">
+      <%- include('partials/heder.ejs') %>
+      <section class="content-main">
+        <div class="content-header">
+          <div>
+            <h2 class="content-title card-title">Products List</h2>
+            <p>Lorem ipsum dolor sit amet.</p>
+          </div>
+          <div>
+            <a href="#" class="btn btn-light rounded font-md">Export</a>
+            <a href="#" class="btn btn-light rounded font-md">Import</a>
+            <a href="addProducts" class="btn btn-primary btn-sm rounded">Create new</a>
+          </div>
+        </div>
+        <div class="card mb-4">
+          <header class="card-header">
+            <!-- Header content remains unchanged -->
+          </header>
+          <div class="card-body">
+            <div id="product-list">
+              <% if (products.length > 0) { %>
+                <div class="row align-items-center mb-3 font-weight-bold">
+                  <div class="col-lg-4 col-sm-4 col-8">Product</div>
+                  <div class="col-lg-2 col-sm-2 col-4">Price</div>
+                  <div class="col-lg-2 col-sm-2 col-4">Status</div>
+                  <div class="col-lg-1 col-sm-2 col-4">Stock</div>
+                  <div class="col-lg-1 col-sm-2 col-4">Date</div>
+                  <div class="col-lg-2 col-sm-2 col-4 text-end">Action</div>
+                </div>
+                <% products.forEach(product => { %>
+                  <article class="itemlist">
+                    <div class="row align-items-center">
+                      <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
+                        <a class="itemside" href="#">
+                          <div class="left">
+                            <img src="<%= product.images[0] %>" class="img-sm img-thumbnail" alt="<%= product.name %>">
+                          </div>
+                          <div class="info">
+                            <h6 class="mb-0"><%= product.name %></h6>
+                          </div>
+                        </a>
+                      </div>
+                      <div class="col-lg-2 col-sm-2 col-4 col-price">
+                        <span>₹ <%= product.price %> <%= product.currency %></span>
+                      </div>
+                      <div class="col-lg-2 col-sm-2 col-4 col-status">
+                        <span class="badge rounded-pill alert-<%= product.status ? 'success' : 'danger' %>"><%= product.status ? 'Active' : 'Disabled' %></span>
+                      </div>
+                      <div class="col-lg-1 col-sm-2 col-4 col-stock">
+                        <span><%= product.stock || 'N/A' %></span>
+                      </div>
+                      <div class="col-lg-1 col-sm-2 col-4 col-date">
+                        <span><%= new Date(product.createdAt).toLocaleDateString() %></span>
+                      </div>
+                      <div class="col-lg-2 col-sm-2 col-4 col-action text-end">
+                        <a href="#" class="btn btn-sm font-sm rounded btn-brand" onclick="editProduct('<%= product._id %>')">
+                          <i class="material-icons md-edit"></i> Edit
+                        </a>
+                        <a href="#" class="btn btn-sm font-sm btn-light rounded" onclick="deleteProduct('<%= product._id %>')">
+                          <i class="material-icons md-delete_forever"></i> Delete
+                        </a>
+                        <a href="#" class="btn btn-sm font-sm btn-light rounded" onclick="blockProduct('<%= product._id %>')">
+                          <%= product.status ? 'Unlist' : 'List' %>
+                        </a>
+                      </div>
+                    </div>
+                  </article>
+                <% }) %>
+              <% } else { %>
+                <p>No products available</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pagination Area -->
+        <div id="pagination" class="pagination-area mt-15 mb-50">
+          <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-start">
+                  <% if (currentPage > 1) { %>
+                      <li class="page-item">
+                          <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= search %>">
+                              <i class="material-icons md-chevron_left"></i>
+                          </a>
+                      </li>
+                  <% } %>
+      
+                  <% for (let i = 1; i <= totalPages; i++) { %>
+                      <% if (i === currentPage) { %>
+                          <li class="page-item active">
+                              <a class="page-link" href="#"><%= i %></a>
+                          </li>
+                      <% } else { %>
+                          <li class="page-item">
+                              <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
+                          </li>
+                      <% } %>
+                  <% } %>
+      
+                  <% if (currentPage < totalPages) { %>
+                      <li class="page-item">
+                          <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= search %>">
+                              <i class="material-icons md-chevron_right"></i>
+                          </a>
+                      </li>
+                  <% } %>
+              </ul>
+          </nav>
+      </div>
+           
+
+      </section>
+      <!-- content-main end// -->
+    </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+    
+        searchInput.addEventListener('input', function() {
+          const query = searchInput.value;
+    
+          fetch(`/admin/products?search=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+              updateProductList(data.products, data.totalPages);
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    
+        function updateProductList(products, totalPages) {
+          const productContainer = document.getElementById('product-list');
+          const paginationContainer = document.getElementById('pagination');
+    
+          productContainer.innerHTML = '';
+    
+          products.forEach(product => {
+            const productHtml = `
+              <article class="itemlist">
+                <div class="row align-items-center">
+                  <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
+                    <a class="itemside" href="#">
+                      <div class="left">
+                        <img src="${product.images[0]}" class="img-sm img-thumbnail" alt="${product.name}">
+                      </div>
+                      <div class="info">
+                        <h6 class="mb-0">${product.name}</h6>
+                      </div>
+                    </a>
+                  </div>
+                  <div class="col-lg-2 col-sm-2 col-4 col-price">
+                    <span>₹ ${product.price} ${product.currency}</span>
+                  </div>
+                  <div class="col-lg-2 col-sm-2 col-4 col-status">
+                    <span class="badge rounded-pill alert-${product.status ? 'success' : 'danger'}">${product.status ? 'Active' : 'Disabled'}</span>
+                  </div>
+                  <div class="col-lg-1 col-sm-2 col-4 col-date">
+                    <span>${new Date(product.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div class="col-lg-2 col-sm-2 col-4 col-action text-end">
+                    <a href="#" class="btn btn-sm font-sm rounded btn-brand" onclick="editProduct('${product._id}')">
+                      <i class="material-icons md-edit"></i> Edit
+                    </a>
+                    <a href="#" class="btn btn-sm font-sm btn-light rounded" onclick="deleteProduct('${product._id}')">
+                      <i class="material-icons md-delete_forever"></i> Delete
+                    </a>
+                    <a href="#" class="btn btn-sm font-sm btn-light rounded" onclick="blockProduct('${product._id}')">
+                      ${product.status ? 'Unlist' : 'List'}
+                    </a>
+                  </div>
+                </div>
+              </article>
+            `;
+            productContainer.insertAdjacentHTML('beforeend', productHtml);
+          });
+    
+          updatePagination(totalPages);
+        }
+    
+        function updatePagination(totalPages) {
+          const paginationContainer = document.getElementById('pagination');
+          paginationContainer.innerHTML = '';
+    
+          for (let i = 1; i <= totalPages; i++) {
+            const pageHtml = `
+              <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="?page=${i}&search=${encodeURIComponent(searchInput.value)}">${i}</a>
+              </li>
+            `;
+            paginationContainer.insertAdjacentHTML('beforeend', pageHtml);
+          }
+        }
+      });
+    
+      function editProduct(productId) {
+        window.location.href = `/admin/products/${productId}/edit`;
+      }
+    
+      function deleteProduct(productId) {
+        Swal.fire({
+          title: 'Are you sure?',
+          text: "You won't be able to revert this!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch(`/admin/products/${productId}`, {
+              method: 'DELETE',
+            })
+            .then(response => {
+              if (response.ok) {
+                Swal.fire(
+                  'Deleted!',
+                  'Your product has been deleted.',
+                  'success'
+                ).then(() => {
+                  location.reload();
+                });
+              } else {
+                Swal.fire(
+                  'Failed!',
+                  'Failed to delete product.',
+                  'error'
+                );
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              Swal.fire(
+                'Failed!',
+                'An error occurred. Please try again.',
+                'error'
+              );
+            });
+          }
+        });
+      }
+    
+      function blockProduct(productId) {
+        fetch(`/admin/products/${productId}/block`, {
+          method: 'PATCH',
+        })
+        .then(response => {
+          if (response.ok) {
+            location.reload();
+          } else {
+            Swal.fire(
+              'Failed!',
+              'Failed to toggle product status.',
+              'error'
+            );
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire(
+            'Failed!',
+            'An error occurred. Please try again.',
+            'error'
+          );
+        });
+      }
+    </script>
+    
+
+    <%- include('partials/foot.ejs') %>
+  </body>
+</html>

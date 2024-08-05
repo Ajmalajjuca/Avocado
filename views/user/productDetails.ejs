@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Ogani Template">
+    <meta name="keywords" content="Ogani, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Avocado</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico" />
+
+    <!-- Css Styles -->
+    <link rel="stylesheet" href="/user/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="/user/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="/user/css/elegant-icons.css" type="text/css">
+    <link rel="stylesheet" href="/user/css/nice-select.css" type="text/css">
+    <link rel="stylesheet" href="/user/css/jquery-ui.min.css" type="text/css">
+    <link rel="stylesheet" href="/user/css/owl.carousel.min.css" type="text/css">
+    <link rel="stylesheet" href="/user/css/slicknav.min.css" type="text/css">
+    <link rel="stylesheet" href="/user/css/style.css" type="text/css">
+    <style>
+        .qtybtn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+    </style>
+</head>
+<body>
+  <%- include('partials/header'); %>
+  <!-- Header Section End -->
+
+  <!-- Hero Section Begin -->
+  <section class="hero hero-normal">
+      <div class="container">
+          <div class="row">
+              <div class="col-lg-3">
+                <%- include('partials/allcategory.ejs') %>
+              </div>
+              <div class="col-lg-9">
+                  <div class="hero__search">
+                      <div class="hero__search__form">
+                          <form action="#">
+                              
+                              <input type="text" placeholder="What do yo u need?">
+                              <button type="submit" class="site-btn">SEARCH</button>
+                          </form>
+                      </div>
+                      <div class="hero__search__phone">
+                          <div class="hero__search__phone__icon">
+                              <i class="fa fa-phone"></i>
+                          </div>
+                          <div class="hero__search__phone__text">
+                              <h5>+65 11.188.888</h5>
+                              <span>support 24/7 time</span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </section>
+  <!-- Hero Section End -->
+
+  <!-- Breadcrumb Section Begin -->
+  <section class="breadcrumb-section set-bg" data-setbg="/user/img/breadcrumb.jpg">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="breadcrumb__text">
+                    <h2><%= product.name %></h2>
+                    <div class="breadcrumb__option">
+                        <a href="/">Home</a>
+                        <a href="/categories/<%= product.category._id %>"><%= product.category.name %></a>
+                        <span><%= product.name %></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+  <!-- Breadcrumb Section End -->
+
+  <!-- Product Details Section Begin -->
+  <section class="product-details spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-6">
+              <div class="product__details__pic">
+                <div class="product__details__pic__item">
+                    <% if (product.images && product.images.length > 0) { %>
+                        <img class="product__details__pic__item--large" src="<%= product.images[0] %>" alt="">
+                    <% } else { %>
+                        <img class="product__details__pic__item--large" src="/path/to/default-image.jpg" alt="No Image Available">
+                    <% } %>
+                </div>
+                <div class="product__details__pic__slider owl-carousel">
+                  <% if (product.images && product.images.length > 1) { %>
+                    <% product.images.slice(1).forEach((image, index) => { %>
+                        <img data-imgbigurl="<%= image %>" src="<%= product.thumbUrls && product.thumbUrls[index + 1] ? product.thumbUrls[index + 1] : image %>" alt="">
+                    <% }) %>
+                <% } %>
+                </div>
+            </div>
+            </div>
+            <div class="col-lg-6 col-md-6">
+                <div class="product__details__text">
+                    <h3><%= product.name %></h3>
+                    <div class="product__details__rating">
+                        <% for (let i = 0; i < Math.floor(product.rating); i++) { %>
+                            <i class="fa fa-star"></i>
+                        <% } %>
+                        <% if (product.rating % 1 !== 0) { %>
+                            <i class="fa fa-star-half-o"></i>
+                        <% } %>
+                        <span>(reviews)</span>
+                    </div>
+                    <div class="product__details__price">₹ <%= product.price %></div>
+                    <p><%= product.description %></p>
+                    <div class="product__details__quantity">
+                        <div class="quantity">
+                            
+                                <span class="dec qtybtn" onclick="changeQuantity('<%= product._id %>', -1)">-</span>
+                                <div class="pro-qty">
+                                <input type="text" id="quantity-<%= product._id %>" value="1" readonly data-stock="<%= product.stock %>">
+                            </div>
+                                <span class="inc qtybtn" onclick="changeQuantity('<%= product._id %>', 1)">+</span>
+                            
+                        </div>
+                    </div>
+                    <a href="javascript:void(0);" onclick="addToCart('<%= product._id %>')" class="primary-btn">ADD TO CART</a>
+                    <a href="#" class="heart-icon"><span class="icon_heart_alt"></span></a>
+                    <ul>
+                        <li><b>Availability</b> 
+                            <span class="<%= product.stock === 0 ? 'out-of-stock' : product.stock < 5 ? 'limited-stock' : 'in-stock' %>">
+                                <%= product.stock === 0 ? 'Out of Stock' : product.stock < 5 ? 'Limited Stock' : 'In Stock' %>
+                            </span>
+                        </li>
+                        <li><b>Shipping</b> <span>01 day shipping. <samp>Free pickup today</samp></span></li>
+                        <li><b>Weight</b> <span><%= product.weight %> kg</span></li>
+                        <li><b>Share on</b>
+                            <div class="share">
+                                <a href="#"><i class="fa fa-facebook"></i></a>
+                                <a href="#"><i class="fa fa-twitter"></i></a>
+                                <a href="#"><i class="fa fa-instagram"></i></a>
+                                <a href="#"><i class="fa fa-pinterest"></i></a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-12">
+                <div class="product__details__tab">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#tabs-1" role="tab" aria-selected="true">Description</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#tabs-2" role="tab" aria-selected="false">Information</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#tabs-3" role="tab" aria-selected="false">Reviews <span> product.reviews.length </span></a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="tabs-1" role="tabpanel">
+                            <div class="product__details__tab__desc">
+                                <h6>Product Information</h6>
+                                <p><%= product.longDescription %></p>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="tabs-2" role="tabpanel">
+                            <div class="product__details__tab__desc">
+                                <h6>Additional Information</h6>
+                                <p><%= product.additionalInfo %></p>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="tabs-3" role="tabpanel">
+                            <div class="product__details__tab__desc">
+                                <h6>Reviews</h6>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+  <!-- Product Details Section End -->
+
+  <!-- Related Product Section Begin -->
+  <section class="related-product">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="section-title related__product__title">
+                    <h2>Related Products</h2>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <% relatedProducts.forEach(product => { %>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="product__item">
+                        <div class="product__item__pic set-bg" data-setbg="<%= product.images[0] %>">
+                            <ul class="product__item__pic__hover">
+                                <li><a href="#"><i class="fa fa-heart"></i></a></li>
+                                <li><a href="javascript:void(0);" onclick="addToCart('<%= product._id %>',)"><i class="fa fa-shopping-cart"></i></a></li>                      </ul>
+                            </ul>
+                        </div>
+                        <div class="product__item__text">
+                            <h6><a href="/product/<%= product._id %>"><%= product.name %></a></h6>
+                            <h5>₹<%= product.price.toFixed(2) %></h5>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+</section>
+  <!-- Related Product Section End -->
+
+  <!-- Footer Section Begin -->
+ 
+    <!-- Footer Section Begin -->
+    <%- include('partials/footer') %>
+    <!-- Footer Section End -->
+
+   
+    <!-- Js Plugins -->
+<script src="/user/js/jquery-3.3.1.min.js"></script>
+<script src="/user/js/bootstrap.min.js"></script>
+<script src="/user/js/jquery.nice-select.min.js"></script>
+<script src="/user/js/jquery-ui.min.js"></script>
+<script src="/user/js/jquery.slicknav.js"></script>
+<script src="/user/js/mixitup.min.js"></script>
+<script src="/user/js/owl.carousel.min.js"></script>
+<script src="/user/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  $('.owl-carousel').owlCarousel({
+      loop:true,
+      margin:10,
+      nav:true,
+      items:1
+  });
+</script>
+<script>
+function changeQuantity(productId, change) {
+    const quantityInput = document.getElementById(`quantity-${productId}`);
+    let currentQuantity = parseInt(quantityInput.value);
+    let newQuantity = currentQuantity + change;
+    const maxStock = parseInt(quantityInput.dataset.stock);
+    
+    // Ensure quantity doesn't go below 1 or above the available stock
+    newQuantity = Math.max(1, Math.min(newQuantity, maxStock));
+    
+    quantityInput.value = newQuantity;
+
+    // Update the UI to reflect the new quantity
+    updateQuantityUI(productId, newQuantity, maxStock);
+}
+async function addToCart(productId) {
+    const quantityInput = document.getElementById(`quantity-${productId}`);
+    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+    const maxStock = quantityInput ? parseInt(quantityInput.dataset.stock) : Infinity;
+
+    if (quantity > maxStock) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: `Sorry, only ${maxStock} items are available in stock.`
+        });
+        return;
+    }
+
+    try {
+        const response = await fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId, quantity })
+        });
+        
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message
+            });
+            updateCartCount(data.cartItemCount);
+        } else {
+            throw new Error(data.message || 'Failed to add product to cart');
+        }
+    } catch (error) {
+        console.error('Error adding product to cart:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: error.message || 'Failed to add product to cart'
+        });
+    }
+}
+function updateCartCount(count) {
+  const cartCountElement = document.getElementById('cart-count');
+  if (cartCountElement) {
+    cartCountElement.textContent = count;
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInputs = document.querySelectorAll('[id^="quantity-"]');
+    quantityInputs.forEach(input => {
+        const productId = input.id.split('-')[1];
+        const quantity = parseInt(input.value);
+        const maxStock = parseInt(input.dataset.stock);
+        updateQuantityUI(productId, quantity, maxStock);
+    });
+});
+</script>
+<script>
+
+</script>
+<script>
+    async function updateQuantity(productId, quantity) {
+        
+  try {
+    console.log('Updating product:', productId, 'to quantity:', quantity);
+    const response = await fetch('/cart/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ productId, quantity: parseInt(quantity) })
+    });
+
+    const data = await response.json();
+    console.log('Server response:', data);
+
+    if (data.success) {
+      updateCartDisplay(data.cart);
+    } else {
+      throw new Error(data.message || 'Failed to update quantity');
+    }
+  } catch (error) {
+    console.error('Error updating quantity:', error);
+    alert(`Failed to update quantity: ${error.message}`);
+  }
+}
+
+function updateQuantityUI(productId, quantity, maxStock) {
+    const decreaseBtn = document.querySelector(`#quantity-${productId}`).previousElementSibling;
+    const increaseBtn = document.querySelector(`#quantity-${productId}`).nextElementSibling;
+    
+    // Disable decrease button if quantity is 1
+    decreaseBtn.classList.toggle('disabled', quantity === 1);
+    
+    // Disable increase button if quantity equals max stock
+    increaseBtn.classList.toggle('disabled', quantity === maxStock);
+}
+
+</script>
+   
+  </body>
+</html>

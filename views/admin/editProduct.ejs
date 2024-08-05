@@ -1,0 +1,239 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<body>
+  <%- include('partials/side.ejs') %>
+  <div class="screen-overlay"></div>
+  <main class="main-wrap">
+    <%- include('partials/heder.ejs') %>
+    <section class="content-main">
+      <div class="row">
+        <div class="col-9">
+          <div class="content-header">
+            <h2 class="content-title">Edit Product</h2>
+            <div>
+              <button id="updateButton" class="btn btn-md rounded font-sm hover-up">Update</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card mb-4">
+            <div class="card-header">
+              <h4>Basic</h4>
+            </div>
+            <div class="card-body">
+              <form id="editProductForm" action="/admin/products/<%= product._id %>" method="POST" enctype="multipart/form-data">
+                <div class="mb-4">
+                  <label for="product_name" class="form-label">Product title</label>
+                  <input type="text" name="productname" value="<%= product.name %>" placeholder="Type here" class="form-control" id="product_name" required>
+                </div>
+                <div class="mb-4">
+                  <label for="product_description" class="form-label">Full description</label>
+                  <textarea placeholder="Type here" name="productdescription" class="form-control" rows="4" id="product_description" required><%= product.description %></textarea>
+                </div>
+                <div class="row">
+                  <div class="col-lg-4">
+                    <div class="mb-4">
+                      <label for="regular_price" class="form-label">Regular price</label>
+                      <input placeholder="₹" name="price" type="number" step="0.01" class="form-control" id="regular_price" value="<%= product.price %>" required>
+                    </div>
+                  </div>
+                  <div class="col-lg-4">
+                    <label for="currency" class="form-label">Currency</label>
+                    <select name="currency" class="form-select" id="currency" required>
+                      <option value="INR" <%= product.currency === 'INR' ? 'selected' : '' %>>INR</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="mb-4">
+                  <label for="stock" class="form-label">Stock</label>
+                  <input type="text" name="stock" class="form-control" id="stock" value="<%= product.stock %>" required>
+                </div>
+                <div class="mb-4">
+                  <label for="existing_images" class="form-label">Existing Images</label>
+                  <div id="existing_images" class="d-flex flex-wrap">
+                    <% product.images.forEach((image, index) => { %>
+                      <div class="image-container" style="position: relative; margin-right: 10px;">
+                        <img src="<%= image %>" alt="<%= product.name %>" style="width: 100px; height: 100px; border: 1px solid #ddd; border-radius: 5px;">
+                        <button type="button" class="remove-img-btn" data-index="<%= index %>" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 50%; cursor: pointer; width: 20px; height: 20px; text-align: center;">X</button>
+                        <input type="hidden" name="existingImages[]" value="<%= image %>">
+                      </div>
+                    <% }) %>
+                  </div>
+                </div>
+                <div class="input-upload">
+                  <img src="/admin/imgs/theme/upload.svg" alt="">
+                  <input class="form-control" type="file" name="newImages" id="newImages" multiple accept="image/jpeg,image/png,image/gif">
+                  <div id="fileError" class="text-danger mt-2" style="display: none;"></div>
+                </div>
+                <div class="mb-4">
+                  <label for="category" class="form-label">Category</label>
+                  <select name="category" class="form-select" id="category" required>
+                    <% categories.forEach(category => { %>
+                      <option value="<%= category._id %>" <%= product.category.equals(category._id) ? 'selected' : '' %>><%= category.name %></option>
+                    <% }) %>
+                  </select>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <%- include('partials/foot.ejs') %>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const existingImagesContainer = document.getElementById('existing_images');
+    const newImagesInput = document.getElementById('newImages');
+    const form = document.getElementById('editProductForm');
+    const updateButton = document.getElementById('updateButton');
+
+    // Handle removing existing images
+    existingImagesContainer.addEventListener('click', function(e) {
+  if (e.target.classList.contains('remove-img-btn')) {
+    e.preventDefault();
+    const imageContainer = e.target.closest('.image-container');
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you want to remove this image?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        imageContainer.remove();
+      }
+    });
+  }
+});
+
+    // Handle adding new images
+    newImagesInput.addEventListener('change', function(e) {
+  const files = e.target.files;
+  for (let file of files) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const imgContainer = document.createElement('div');
+      imgContainer.className = 'image-container';
+      imgContainer.style = 'position: relative; margin-right: 10px;';
+      imgContainer.innerHTML = `
+        <img src="${e.target.result}" alt="New image" style="width: 100px; height: 100px; border: 1px solid #ddd; border-radius: 5px;">
+        <button type="button" class="remove-img-btn" style="position: absolute; top: 0; right: 0; background: red; color: white; border: none; border-radius: 50%; cursor: pointer; width: 20px; height: 20px; text-align: center;">X</button>
+      `;
+      existingImagesContainer.appendChild(imgContainer);
+    }
+    reader.readAsDataURL(file);
+  }
+});
+
+    // Handle form submission
+    updateButton.addEventListener('click', function(e) {
+  e.preventDefault();
+  const formData = new FormData(form);
+
+  // Add existing images to formData
+  const existingImageInputs = form.querySelectorAll('input[name="existingImages[]"]');
+  formData.delete('existingImages[]'); // Remove any previous entries
+  existingImageInputs.forEach((input, index) => {
+    formData.append('existingImages[]', input.value);
+  });
+
+  fetch(form.action, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      Swal.fire('Success', 'Product updated successfully', 'success')
+        .then(() => {
+          window.location.href = '/admin/products';
+        });
+    } else {
+      Swal.fire('Error', data.message || 'Failed to update product', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    Swal.fire('Error', 'An unexpected error occurred', 'error');
+  });
+});
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const newImagesInput = document.getElementById('newImages');
+    const fileError = document.getElementById('fileError');
+    const updateButton = document.getElementById('updateButton');
+    const form = document.getElementById('editProductForm');
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+
+    function validateFiles(files) {
+        for (let file of files) {
+            if (!allowedTypes.includes(file.type)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    newImagesInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (!validateFiles(files)) {
+            fileError.textContent = 'Only JPEG, PNG, and GIF images are allowed.';
+            fileError.style.display = 'block';
+            newImagesInput.value = ''; // Clear the input
+        } else {
+            fileError.style.display = 'none';
+            // Your existing code to preview images can go here
+        }
+    });
+
+    updateButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        if (!validateFiles(newImagesInput.files)) {
+            Swal.fire('Error', 'Only JPEG, PNG, and GIF images are allowed.', 'error');
+            return;
+        }
+
+        const formData = new FormData(form);
+
+        // Add existing images to formData
+        const existingImageInputs = form.querySelectorAll('input[name="existingImages[]"]');
+        formData.delete('existingImages[]'); // Remove any previous entries
+        existingImageInputs.forEach((input, index) => {
+            formData.append('existingImages[]', input.value);
+        });
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire('Success', 'Product updated successfully', 'success')
+                    .then(() => {
+                        window.location.href = '/admin/products';
+                    });
+            } else {
+                Swal.fire('Error', data.message || 'Failed to update product', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'An unexpected error occurred', 'error');
+        });
+    });
+
+    // Your existing code for handling image previews and removals...
+});
+  </script>
+</body>
+</html>

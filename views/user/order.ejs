@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head'); %>
+  <style>
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.orders-title {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-id {
+  font-weight: bold;
+  color: #495057;
+}
+
+.order-date {
+  font-size: 0.9em;
+  color: #6c757d;
+}
+
+.order-status {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-shipped { background-color: #CFF4FC; color: #077990; }
+.status-delivered { background-color: #d4edda; color: #155724; }
+.status-intransit { background-color: #D6E1FB; color: #1D3E8D; }
+.status-canceled { background-color: #FDCCCC; color: #920001; }
+
+.order-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #fff;
+}
+
+.order-total {
+  font-weight: bold;
+  color: #28a745;
+}
+
+.view-details-btn {
+  background-color: #7FAD39;
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.view-details-btn:hover {
+  background-color: #63882a;
+}
+
+.order-details {
+  display: none;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.item-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.item-list li {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.order-address, .payment-method {
+  margin-top: 15px;
+}
+
+.no-orders {
+  text-align: center;
+  padding: 40px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.shop-now-btn {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.shop-now-btn:hover {
+  background-color: #218838;
+}
+.return-order-btn {
+  background-color: #ffc107;
+  color: #000;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-left: 10px;
+}
+
+.return-order-btn:hover {
+  background-color: #e0a800;
+}
+.cancel-order-btn {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-left: 10px;
+}
+
+.cancel-order-btn:hover {
+  background-color: #c82333;
+}
+  </style>
+</head>
+<body>
+  <%- include('partials/header'); %>
+
+  <div class="container">
+    <h2 class="orders-title">Your Orders</h2>
+    
+    <% if (orders.length > 0) { %>
+      <div class="orders-list">
+        <% orders.forEach(order => { %>
+          <div class="order-card">
+            <div class="order-header">
+              <div class="order-info">
+                <span class="order-id">Order #<%= order.orderId %></span>
+                <span class="order-date"><%= new Date(order.createdAt).toLocaleDateString() %></span>
+              </div>
+              <div class="order-status status-<%= order.status.toLowerCase() %>"><%= order.status %></div>
+            </div>
+            <div class="order-summary">
+              <div class="order-total">Total: ₹<%= order.amount.toFixed(2) %></div>
+              <div>
+                <button class="view-details-btn" onclick="toggleDetails('<%= order._id %>')">View Details</button>
+                <% if (['pending', 'intransit', 'shipped'].includes(order.status.toLowerCase())) { %>
+                  <button class="cancel-order-btn" onclick="confirmCancelOrder('<%= order._id %>')">Cancel Order</button>
+                <% } else if (order.status.toLowerCase() === 'delivered') { %>
+                  <button class="return-order-btn" onclick="confirmReturnOrder('<%= order._id %>')">Return Order</button>
+                <% } %>
+              </div>
+            </div>
+            <div id="details-<%= order._id %>" class="order-details">
+              <h4>Order Items</h4>
+              <ul class="item-list">
+                <% order.items.forEach(item => { %>
+                  <% if (item.productId) { %>
+                    <li><%= item.productId.name %> - Quantity: <%= item.quantity %></li>
+                  <% } else { %>
+                    <li>Product not available - Quantity: <%= item.quantity %></li>
+                  <% } %>
+                <% }) %>
+              </ul>
+              <div class="order-address">
+                <h4>Delivery Address</h4>
+                <% if (order.address) { %>
+                  <p><%= order.address.housename %>, <%= order.address.street %>, <%= order.address.city %>, <%= order.address.state %>, <%= order.address.country %>, <%= order.address.pincode %></p>
+                <% } else { %>
+                  <p>Not provided</p>
+                <% } %>
+              </div>
+              <div class="payment-method">
+                <h4>Payment Method</h4>
+                <p><%= order.payment %></p>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="no-orders">
+        <p>You have no orders yet.</p>
+        <a href="/products" class="shop-now-btn">Start Shopping</a>
+      </div>
+    <% } %>
+  </div>
+
+  <%- include('partials/footer'); %>
+  <%- include('partials/foot'); %>
+
+  <script>
+function toggleDetails(orderId) {
+  const detailsElement = document.getElementById(`details-${orderId}`);
+  if (detailsElement.style.display === 'none' || detailsElement.style.display === '') {
+    detailsElement.style.display = 'block';
+  } else {
+    detailsElement.style.display = 'none';
+  }
+}
+
+function confirmCancelOrder(orderId) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, cancel it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      updateOrderStatus(orderId, 'Canceled');
+    }
+  });
+}
+
+function confirmReturnOrder(orderId) {
+  Swal.fire({
+    title: 'Return Order',
+    text: "Are you sure you want to return this order?",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, return it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      updateOrderStatus(orderId, 'Returned');
+    }
+  });
+}
+
+function updateOrderStatus(orderId, newStatus) {
+  fetch('/update-order-status', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ orderId: orderId, newStatus: newStatus }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      Swal.fire(
+        'Updated!',
+        `Your order has been ${newStatus.toLowerCase()}.`,
+        'success'
+      ).then(() => {
+        location.reload(); // Reload the page to reflect the changes
+      });
+    } else {
+      Swal.fire(
+        'Error!',
+        'There was a problem updating your order.',
+        'error'
+      );
+    }
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+    Swal.fire(
+      'Error!',
+      'There was a problem updating your order.',
+      'error'
+    );
+  });
+}
+
+function confirmCancelOrder(orderId) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, cancel it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      cancelOrder(orderId);
+    }
+  });
+}
+
+function cancelOrder(orderId) {
+  fetch('/cancel-order', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ orderId: orderId }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      Swal.fire(
+        'Cancelled!',
+        'Your order has been cancelled.',
+        'success'
+      ).then(() => {
+        location.reload(); // Reload the page to reflect the changes
+      });
+    } else {
+      Swal.fire(
+        'Error!',
+        'There was a problem cancelling your order.',
+        'error'
+      );
+    }
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+    Swal.fire(
+      'Error!',
+      'There was a problem cancelling your order.',
+      'error'
+    );
+  });
+}
+  </script>
+</body>
+</html>

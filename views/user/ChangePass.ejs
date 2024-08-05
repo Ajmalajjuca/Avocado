@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head'); %>
+  <style>
+    .change-password-form {
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    .change-btn {
+      background-color: #7FAD39;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    .change-btn:hover {
+      background-color: #6d9435;
+    }
+    .error {
+      color: red;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .success {
+      color: rgba(48, 160, 0, 0.87);
+      text-align: center;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header'); %>
+  <div class="container">
+    <h3>Change Password</h3>
+    <% if (messages.error && messages.error.length > 0) { %>
+      <div class="error" role="alert"><%= messages.error[0] %></div>
+    <% } %>
+    <% if (messages.info && messages.info.length > 0) { %>
+      <div class="success" role="alert"><%= messages.info[0] %></div>
+    <% } %>
+    <% if (messages.success && messages.success.length > 0) { %>
+      <div class="success" role="alert"><%= messages.success[0] %></div>
+    <% } %>
+    <form class="change-password-form" action="/change-password" method="POST">
+      <div class="form-group">
+        <label for="new-password">New Password:</label>
+        <input type="password" id="new-password" name="newPassword" required>
+      </div>
+      <div class="form-group">
+        <label for="confirm-password">Confirm New Password:</label>
+        <input type="password" id="confirm-password" name="confirmPassword" required>
+      </div>
+      <button type="submit" class="change-btn">Change Password</button>
+    </form>
+  </div>
+  <%- include('partials/footer') %>
+  <%- include('partials/foot') %>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+  <script>
+    document.querySelector('.change-password-form').addEventListener('submit', function(e) {
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+
+      // Validate password length
+      if (newPassword.length < 8) {
+        e.preventDefault();
+        Swal.fire({
+          icon: 'error',
+          title: 'Weak Password',
+          text: 'Password must be at least 8 characters long!',
+        });
+        return;
+      }
+
+      // Validate password contains a number
+      const hasNumber = /\d/;
+      if (!hasNumber.test(newPassword)) {
+        e.preventDefault();
+        Swal.fire({
+          icon: 'error',
+          title: 'Weak Password',
+          text: 'Password must contain at least one number!',
+        });
+        return;
+      }
+
+      // Validate password contains a special character
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/;
+      if (!hasSpecialChar.test(newPassword)) {
+        e.preventDefault();
+        Swal.fire({
+          icon: 'error',
+          title: 'Weak Password',
+          text: 'Password must contain at least one special character!',
+        });
+        return;
+      }
+
+      // Validate password match
+      if (newPassword !== confirmPassword) {
+        e.preventDefault();
+        Swal.fire({
+          icon: 'error',
+          title: 'Passwords do not match',
+          text: 'Please ensure both passwords match!',
+        });
+      }
+    });
+  </script>
+</body>
+</html>

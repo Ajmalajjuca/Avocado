@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+
+  <body>
+    <%- include('partials/side.ejs') %>
+
+    <div class="screen-overlay"></div>
+
+    <main class="main-wrap">
+      <%- include('partials/heder.ejs') %>
+
+      <section class="content-main">
+        <div class="content-header">
+          <h2 class="content-title">Edit Category</h2>
+          <div>
+            <a href="/admin/categories" class="btn btn-primary"><i class="material-icons md-arrow_back"></i> Back to list</a>
+          </div>
+        </div>
+        <div class="card mb-4">
+          <div class="card-body">
+            
+            <form id="updateCategoryForm" method="POST" action="/admin/categories/<%= category._id %>/edit">
+              <div class="mb-3">
+                <label for="editCategoryName" class="form-label">Category Name:</label>
+                <input type="text" id="editCategoryName" name="editCategoryName" value="<%= category.name %>" class="form-control" required>
+              </div>
+               
+              <div class="mb-3">
+                <label for="editCategoryDescription" class="form-label">Category Description:</label>
+                <textarea id="editCategoryDescription" name="editCategoryDescription" class="form-control" rows="3" required><%= category.description %></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Update Category</button>
+            </form>
+          </div>
+        </div>
+      </section>
+      
+      <%- include('partials/foot.ejs') %>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('updateCategoryForm');
+      
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const categoryName = document.getElementById('editCategoryName').value;
+        const categoryDescription = document.getElementById('editCategoryDescription').value;
+        
+        // Client-side validation
+        const nameRegex = /^[a-zA-Z\s]+$/;
+        if (!nameRegex.test(categoryName)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Invalid Category Name',
+            text: 'Category name should only contain letters and spaces'
+          });
+          return;
+        }
+        
+        try {
+          const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              editCategoryName: categoryName,
+              editCategoryDescription: categoryDescription
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: result.message
+            }).then(() => {
+              window.location.href = '/admin/categories';
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: result.message
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An unexpected error occurred'
+          });
+        }
+      });
+    });
+    </script>
+  </body>
+</html>

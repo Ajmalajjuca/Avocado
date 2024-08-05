@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head'); %>
+</head>
+<body>
+  <%- include('partials/header'); %>
+
+  <style>
+    
+  /* Custom CSS */
+  .profile-container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+  }
+  .btn-full-block {
+    display: block;
+    width: 100%;
+  }
+  .card-body {
+    transition: box-shadow 0.3s, transform 0.3s;
+  }
+  .card-body:hover {
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+    transform: translateY(-5px);
+  }
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .info-item {
+    margin-bottom: 10px;
+  }
+  .info-item strong {
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  .info-item span {
+    color: #555;
+  }
+  .user {
+    font-size: x-large;
+    font-family: Arial, Helvetica, sans-serif;
+    color: black;
+  }
+  .user span {
+    color: rgb(0, 0, 0);
+    letter-spacing: 1px;
+  }
+  .btn {
+    background-color: #2E8B57;
+    font-weight: bold;
+  }
+  </style>
+
+  <div class="container profile-container">
+    <div class="row">
+      <div class="col-md-12 border border-3 text-center mb-4 p-4 user">
+        <h2 class="mb-4">User Information</h2>
+        <div class="user-info">
+          <div class="info-item">
+            <strong>Name:</strong>
+            <span><%= user %></span>
+          </div>
+          <div class="info-item">
+            <strong>Email:</strong>
+            <span><%= email %></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-12">
+        <h2 class="text-center">Take Actions</h2>
+        <div class="row mt-4">
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/user/img/order image.webp" class="img-fluid" alt="order-img">
+                <a href="/orders" class="btn btn-success btn-full-block">
+                  My Orders
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/user/img/reset password.avif" class="img-fluid" alt="resetpass-img">
+                <a href="/ChangePass" class="btn btn-success btn-full-block">
+                  Reset Pass
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/user/img/couponse 2.png" class="img-fluid" alt="coupen-img">
+                <a href="/coupons" class="btn btn-success btn-full-block">
+                  Coupons
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/user/img/wallet image.png" class="img-fluid" alt="wallet-img">
+                <a href="/wallet" class="btn btn-success mt-3 btn-full-block">
+                  Wallet
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/user/img/address.webp" class="img-fluid" alt="address-img">
+                <a href="/address" class="btn btn-success mt-3 btn-full-block">
+                  Address
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <img src="/user/img/logout image.webp" class="img-fluid" alt="logout-img">
+                <button class="btn btn-success mt-3 btn-full-block" onclick="location.href='/logout'">Log out</button>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+  <%- include('partials/foot') %>
+</body>
+</html>

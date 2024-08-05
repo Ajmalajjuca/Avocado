@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head.ejs') %>
+  <style>
+    .order-confirmation {
+  padding: 40px 0;
+  background-color: #f8f9fa;
+}
+
+.confirmation-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+.confirmation-title {
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.order-number {
+  background-color: #e9ecef;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.order-number span {
+  font-weight: bold;
+}
+
+.order-details h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #495057;
+}
+
+.order-items {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.order-items th, .order-items td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.order-items thead {
+  background-color: #f1f3f5;
+}
+
+.order-items tfoot {
+  font-weight: bold;
+}
+
+.order-info {
+  margin-top: 20px;
+}
+
+.status-processing {
+  color: #ffc107;
+}
+
+.status-shipped {
+  color: #17a2b8;
+}
+
+.status-delivered {
+  color: #28a745;
+}
+
+.thank-you {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 18px;
+  color: #28a745;
+}
+  </style>
+  <title>Order Confirmation</title>
+</head>
+<body>
+  <%- include('partials/header.ejs') %>
+
+  <section class="order-confirmation">
+    <div class="container">
+      <div class="confirmation-card">
+        <h2 class="confirmation-title">Order Confirmation</h2>
+        <div class="order-number">
+          <span>Order Number:</span> #<%= order.orderId %>
+        </div>
+        <div class="order-details">
+          <h3>Order Details</h3>
+          <table class="order-items">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% let total = 0; %>
+              <% order.items.forEach(item => { %>
+                <% const itemTotal = item.quantity * item.price; %>
+                <% total += itemTotal; %>
+                <tr>
+                  <td><%= item.productId.name %></td>
+                  <td><%= item.quantity %></td>
+                  <td>₹<%= item.price.toFixed(2) %></td>
+                  <td>₹<%= itemTotal.toFixed(2) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">Total</td>
+                <td>₹<%= total.toFixed(2) %></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="order-info">
+          <p><strong>Payment Method:</strong> <%= order.payment %></p>
+          <p><strong>Status:</strong> <span class="status-<%= order.status.toLowerCase() %>"><%= order.status %></span></p>
+        </div>
+        <div class="thank-you">
+          <p>Thank you for your order!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%- include('partials/footer.ejs') %>
+  <%- include('partials/foot.ejs') %>
+</body>
+</html>

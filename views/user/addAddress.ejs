@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head.ejs') %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <header>
+        <%- include('partials/header.ejs') %>
+    </header>
+
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Add New Address</h2>
+        <form id="add-address-form" action="/addAddress" method="POST">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="mobile">Mobile</label>
+                <input type="text" id="mobile" name="mobile" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="housename">House Name</label>
+                <input type="text" id="housename" name="housename" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="street">Street</label>
+                <input type="text" id="street" name="street" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="city">City</label>
+                <input type="text" id="city" name="city" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="state">State</label>
+                <input type="text" id="state" name="state" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="country">Country</label>
+                <input type="text" id="country" name="country" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="pincode">Pincode</label>
+                <input type="text" id="pincode" name="pincode" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="save_as">Save As</label>
+                <input type="text" id="save_as" name="save_as" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Address</button>
+        </form>
+    </div>
+
+    <footer>
+        <%- include('partials/footer.ejs') %>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('add-address-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const mobile = document.getElementById('mobile').value.trim();
+            const housename = document.getElementById('housename').value.trim();
+            const street = document.getElementById('street').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const state = document.getElementById('state').value.trim();
+            const country = document.getElementById('country').value.trim();
+            const pincode = document.getElementById('pincode').value.trim();
+            const save_as = document.getElementById('save_as').value.trim();
+
+            if (!name || !email || !mobile || !housename || !street || !city || !state || !country || !pincode || !save_as) {
+                Swal.fire('Validation Error', 'All fields are required.', 'error');
+                return;
+            }
+
+            if (!/^[A-Za-z\s]+$/.test(name)) {
+                Swal.fire('Validation Error', 'Name should contain only letters.', 'error');
+                return;
+            }
+
+            if (!/^\d{10}$/.test(mobile)) {
+                Swal.fire('Validation Error', 'Mobile number should be 10 digits.', 'error');
+                return;
+            }
+
+            if (!/^\d{6}$/.test(pincode)) {
+                Swal.fire('Validation Error', 'Pincode should be 6 digits.', 'error');
+                return;
+            }
+
+            this.submit();
+        });
+    </script>
+    <%- include('partials/foot.ejs') %>
+</body>
+</html>

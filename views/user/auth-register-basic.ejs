@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head2'); %>
+  <script>
+    function validateSignupForm(event) {
+      event.preventDefault(); // Prevent form submission
+
+      const usernameInput = document.getElementById('username');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const confirmPasswordInput = document.getElementById('confirmPassword');
+      const termsCheckbox = document.getElementById('terms-conditions');
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.innerHTML = ''; // Clear previous error messages
+
+      const username = usernameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      const confirmPassword = confirmPasswordInput.value.trim();
+      const isTermsChecked = termsCheckbox.checked;
+
+      let isValid = true;
+
+      // Username validation
+      if (!username) {
+        errorDiv.innerHTML += '<p>Username is required.</p>';
+        isValid = false;
+      }
+
+      // Email validation
+      if (!email) {
+        errorDiv.innerHTML += '<p>Email is required.</p>';
+        isValid = false;
+      } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+        errorDiv.innerHTML += '<p>Please enter a valid email address.</p>';
+        isValid = false;
+      }
+
+      // Password validation
+      if (!password) {
+        errorDiv.innerHTML += '<p>Password is required.</p>';
+        isValid = false;
+      } else if (password.length < 8) { // Example minimum length
+        errorDiv.innerHTML += '<p>Password must be at least 8 characters long.</p>';
+        isValid = false;
+      }
+
+      // Confirm password validation
+      if (!confirmPassword) {
+        errorDiv.innerHTML += '<p>Confirm Password is required.</p>';
+        isValid = false;
+      } else if (password !== confirmPassword) {
+        errorDiv.innerHTML += '<p>Passwords do not match.</p>';
+        isValid = false;
+      }
+
+      // Terms and conditions validation
+      if (!isTermsChecked) {
+        errorDiv.innerHTML += '<p>You must agree to the privacy policy & terms.</p>';
+        isValid = false;
+      }
+
+      // If valid, submit the form
+      if (isValid) {
+        document.getElementById('formAuthentication').submit();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('formAuthentication').addEventListener('submit', validateSignupForm);
+    });
+  </script>
+</head>
+<body>
+  <!-- Content -->
+  <div class="container-xxl">
+    <div class="authentication-wrapper authentication-basic container-p-y">
+      <div class="authentication-inner">
+        <!-- Register Card -->
+        <div class="card">
+          <div class="card-body">
+            <!-- Logo -->
+            <div class="app-brand justify-content-center">
+              <a href="index.html" class="app-brand-link gap-2">
+                <span class="app-brand-logo demo">
+                  <div class="col-lg-3">
+                    <div class="header__logo">
+                      <a href="/"><img src="user/img/Avocado logo.png" alt=""></a>
+                    </div>
+                  </div>
+                </span>
+              </a>
+            </div>
+            <!-- /Logo -->
+            <h4 class="mb-2">Shopping starts here 🚀</h4>
+            <p class="mb-4">Make your shopping management easy and fun!</p>
+            <% if (locals.error) { %>
+              <div class="error" role="alert">
+                <%= error %>
+              </div>
+            <% } %>
+            <div id="error-message" style="color: red;"></div>
+            <form id="formAuthentication" class="mb-3" action="signup" method="POST">
+              <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" autofocus />
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email" />
+              </div>
+              <div class="mb-3 form-password-toggle">
+                <label class="form-label" for="password">Password</label>
+                <div class="input-group input-group-merge">
+                  <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
+                  <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                </div>
+              </div>
+              <div class="mb-3 form-password-toggle">
+                <label class="form-label" for="confirmPassword">Confirm Password</label>
+                <div class="input-group input-group-merge">
+                  <input type="password" id="confirmPassword" class="form-control" name="cpassword" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
+                  <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                </div>
+              </div>
+              <div class="mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms" />
+                  <label class="form-check-label" for="terms-conditions">I agree to <a href="javascript:void(0);">privacy policy & terms</a></label>
+                </div>
+              </div>
+              <button class="btn btn-primary d-grid w-100">Sign up</button>
+            </form>
+            <p class="text-center">
+              <span>Already have an account?</span>
+              <a href="login"><span>Sign in instead</span></a>
+            </p>
+          </div>
+        </div>
+        <!-- Register Card -->
+      </div>
+    </div>
+  </div>
+</body>
+</html>

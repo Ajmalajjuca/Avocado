@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+
+  <body>
+    <%- include('partials/side.ejs') %>
+
+    <div class="screen-overlay"></div>
+
+    <main class="main-wrap">
+      <%- include('partials/heder.ejs') %>
+      <section class="content-main">
+        <div class="content-header">
+          <h2 class="content-title">User list</h2>
+          <div>
+            <a
+              href="/admin/createUser"
+              class="btn btn-primary"
+              onclick="createUser()"
+            >
+              <i class="material-icons md-plus"></i> Create new
+            </a>
+          </div>
+        </div>
+        <div class="card mb-4">
+          <header class="card-header">
+            <div class="row gx-3">
+              <div class="col-lg-4 col-md-6 me-auto">
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Search..."
+                  class="form-control"
+                  oninput="searchUsers()"
+                />
+              </div>
+            </div>
+          </header>
+          <!-- card-header end// -->
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% users.forEach(user => { %>
+                  <tr>
+                    <td width="40%">
+                      <div class="info pl-3">
+                        <h6 class="mb-0 title"><%= user.username %></h6>
+                      </div>
+                    </td>
+                    <td><%= user.email %></td>
+                    <td>
+                      <span
+                        class="badge rounded-pill <%= user.blocked ? 'alert-danger' : 'alert-success' %>"
+                      >
+                        <%= user.blocked ? 'Blocked' : 'Active' %>
+                      </span>
+                    </td>
+                    <td class="text-end">
+                      <a
+                        href="#"
+                        class="btn btn-sm btn-brand rounded font-sm mt-15"
+                        onclick="editUser('<%= user._id %>')"
+                        >Edit</a
+                      >
+                      <a
+                        href="#"
+                        class="btn btn-sm btn-brand rounded font-sm mt-15"
+                        onclick="deleteUser('<%= user._id %>')"
+                        >Delete</a
+                      >
+                      <a
+                        href="#"
+                        class="btn btn-sm btn-brand rounded font-sm mt-15"
+                        onclick="blockUser('<%= user._id %>')"
+                      >
+                        <%= user.blocked ? 'Unblock' : 'Block' %>
+                      </a>
+                    </td>
+                  </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+              <!-- table-responsive.// -->
+            </div>
+          </div>
+          <!-- card-body end// -->
+        </div>
+        <!-- card end// -->
+
+        <div class="pagination-area mt-15 mb-50">
+          <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-start">
+              <li class="page-item active">
+                <a class="page-link" href="#">01</a>
+              </li>
+              <li class="page-item"><a class="page-link" href="#">02</a></li>
+              <li class="page-item"><a class="page-link" href="#">03</a></li>
+              <li class="page-item">
+                <a class="page-link dot" href="#">...</a>
+              </li>
+              <li class="page-item"><a class="page-link" href="#">16</a></li>
+              <li class="page-item">
+                <a class="page-link" href="#"
+                  ><i class="material-icons md-chevron_right"></i
+                ></a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </section>
+      <footer class="main-footer font-xs">
+        <div class="row pb-30 pt-15">
+          <div class="col-sm-6">
+            <script
+              data-cfasync="false"
+              src="../../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"
+            ></script>
+            <script>
+              document.write(new Date().getFullYear());
+
+              function editUser(userId) {
+                window.location.href = `/admin/users/${userId}/edit`;
+              }
+
+              function deleteUser(userId) {
+                fetch(`/admin/users/${userId}`, { method: "DELETE" })
+                  .then((response) => {
+                    if (response.ok) {
+                      return response.json();
+                    } else {
+                      throw new Error("Failed to delete user");
+                    }
+                  })
+                  .then((data) => {
+                    Swal.fire({
+                      title: "Deleted!",
+                      text: data.message,
+                      icon: "success",
+                      confirmButtonText: "Okay",
+                    }).then(() => {
+                      window.location.reload(); // Refresh the page after success
+                    });
+                  })
+                  .catch((error) => {
+                    console.error("Error:", error);
+                    Swal.fire({
+                      title: "Error!",
+                      text: "An error occurred while deleting the user",
+                      icon: "error",
+                      confirmButtonText: "Okay",
+                    });
+                  });
+              }
+              function blockUser(userId) {
+                fetch(`/admin/users/${userId}/block`, { method: "PATCH" })
+                  .then((response) => {
+                    if (response.ok) {
+                      return response.json();
+                    } else {
+                      throw new Error("Failed to block user");
+                    }
+                  })
+                  .then((data) => {
+                    Swal.fire({
+                      title: "Success!",
+                      text: data.message,
+                      icon: "success",
+                      confirmButtonText: "Okay",
+                    }).then(() => {
+                      window.location.reload(); // Refresh the page after success
+                    });
+                  })
+                  .catch((error) => {
+                    console.error("Error:", error);
+                    Swal.fire({
+                      title: "Error!",
+                      text: "An error occurred while blocking the user",
+                      icon: "error",
+                      confirmButtonText: "Okay",
+                    });
+                  });
+              }
+
+              function searchUsers() {
+                const searchInput = document
+                  .getElementById("searchInput")
+                  .value.toLowerCase();
+                const tableRows = document.getElementsByTagName("tr");
+
+                for (let i = 1; i < tableRows.length; i++) {
+                  const nameCell = tableRows[i].getElementsByTagName("td")[0];
+                  const emailCell = tableRows[i].getElementsByTagName("td")[1];
+
+                  if (
+                    nameCell.innerText.toLowerCase().includes(searchInput) ||
+                    emailCell.innerText.toLowerCase().includes(searchInput)
+                  ) {
+                    tableRows[i].style.display = "";
+                  } else {
+                    tableRows[i].style.display = "none";
+                  }
+                }
+              }
+            </script>
+            ©, Evara - HTML Ecommerce Template.
+          </div>
+          <div class="col-sm-6">
+            <div class="text-sm-end">All rights reserved</div>
+          </div>
+        </div>
+      </footer>
+    </main>
+    <%- include('partials/foot.ejs') %>
+  </body>
+</html>

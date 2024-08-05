@@ -1,0 +1,221 @@
+
+
+<%-include('navbar')-%>
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-hhJAYVyrVlbRqysQsau+3E35KWx0pWaf27oV34roF03qYpNoAUVh43RJweuW4zYuwCm/6RrXyjeY8GCt6mpLOA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+  /* Custom CSS */
+  .profile-container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+  }
+  .btn-full-block {
+    display: block;
+    width: 100%;
+  }
+  .card-body {
+    transition: box-shadow 0.3s, transform 0.3s;
+  }
+  .card-body:hover {
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+    transform: translateY(-5px);
+  }
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .info-item {
+    margin-bottom: 10px;
+  }
+  .info-item strong {
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  .info-item span {
+    color: #555;
+  }
+  .user {
+    font-size: x-large;
+    font-family: Arial, Helvetica, sans-serif;
+    color: black;
+  }
+  .user span {
+    color: rgb(0, 0, 0);
+    letter-spacing: 1px;
+  }
+  .btn {
+    background-color: #2E8B57;
+    font-weight: bold;
+  }
+  @media (max-width: 768px) {
+    .card-body img {
+      width: 100%;
+      height: auto;
+    }
+  }
+</style>
+
+<body style="background-color: #eeeeee;">
+  <div class="container profile-container">
+    <div class="row">
+      <div class="col-md-12 border border-3 text-center mb-4 p-4 user">
+        <h2 class="mb-4">User Information</h2>
+        <div class="user-info">
+          <div class="info-item">
+            <strong>Name:</strong>
+            <span><%= name %></span>
+          </div>
+          <div class="info-item">
+            <strong>Email:</strong>
+            <span><%= email %></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-12">
+        <h2 class="text-center">Take Actions</h2>
+        <div class="row mt-4">
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/public/img/order image.webp" class="img-fluid" alt="order-img">
+                <a href="/orders" class="btn btn-success btn-full-block">
+                  My Orders
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/public/img/reset password.avif" class="img-fluid" alt="resetpass-img">
+                <a href="/ChangePass" class="btn btn-success btn-full-block">
+                  Reset Pass
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/public/img/couponse 2.png" class="img-fluid" alt="coupen-img">
+                <a href="/coupons" class="btn btn-success btn-full-block">
+                  Coupons
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/public/img/wallet image.png" class="img-fluid" alt="wallet-img">
+                <a href="/wallet" class="btn btn-success mt-3 btn-full-block">
+                  Wallet
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card mb-3">
+              <div class="card-body">
+                <img src="/public/img/address.webp" class="img-fluid" alt="address-img">
+                <a href="/move/address" class="btn btn-success mt-3 btn-full-block">
+                  Address
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <img src="/public/img/logout image.webp" class="img-fluid" alt="logout-img">
+                <a href="/logout" class="btn btn-success mt-3 btn-full-block">
+                  Log Out
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Section Begin -->
+  <footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="footer__about">
+                    <div class="footer__logo font-weight-bold" style="font-size: xx-large; letter-spacing: 1px;">
+                        <a href="/"><img src="" alt="">Fashion World</a>
+                    </div>
+                    <p>The customer is at the heart of our unique business model, which includes design.</p>
+                    <a href="/shop"><img src="img/payment.png" alt=""></a>
+                </div>
+            </div>
+            <div class="col-lg-2 offset-lg-1 col-md-3 col-sm-6">
+                <div class="footer__widget">
+                    <h6>Shopping</h6>
+                    <ul>
+                        <li><a href="/shop">Clothing Store</a></li>
+                        <li><a href="/shop">Trending Shoes</a></li>
+                        <li><a href="/shop">Accessories</a></li>
+                        <li><a href="/shop">Sale</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <div class="footer__widget">
+                    <h6>Shopping</h6>
+                    <ul>
+                        <li><a href="/shop">Contact Us</a></li>
+                        <li><a href="/shop">Payment Methods</a></li>
+                        <li><a href="/shop">Delivary</a></li>
+                        <li><a href="/shop">Return & Exchanges</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-3 offset-lg-1 col-md-6 col-sm-6">
+                <div class="footer__widget">
+                    <h6>NewLetter</h6>
+                    <div class="footer__newslatter">
+                        <p>Be the first to know about new arrivals, look books, sales & promos!</p>
+                        <form action="#">
+                            <input type="text" placeholder="Your email">
+                            <button type="submit"><span class="icon_mail_alt"></span></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="footer__copyright__text">
+                    <!-- you can give your own instas link or snap or youtube -->
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Footer Section End -->
+
+
+  <script src="js/jquery-3.3.1.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/jquery.nice-select.min.js"></script>
+  <script src="js/jquery.nicescroll.min.js"></script>
+  <script src="js/jquery.magnific-popup.min.js"></script>
+  <script src="js/jquery.countdown.min.js"></script>
+  <script src="js/jquery.slicknav.js"></script>
+  <script src="js/mixitup.min.js"></script>
+  <script src="js/owl.carousel.min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>

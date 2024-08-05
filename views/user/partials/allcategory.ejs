@@ -1,0 +1,20 @@
+<div class="hero__categories">
+    <div class="hero__categories__all">
+        <i class="fa fa-bars"></i>
+        <span>All Category</span>
+    </div>
+    <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+      <ul>
+        <% categories.forEach(category => { %>
+          <li>
+            <a href="/categories/<%= category._id %>">
+              <h5><%= category.name %></h5>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <p>No categories available.</p>
+    <% } %>
+</div>
+

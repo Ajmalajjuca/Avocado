@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head2'); %>
+  <script>
+    function validateLoginForm(event) {
+      event.preventDefault(); // Prevent form submission
+
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.innerHTML = ''; // Clear previous error messages
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      let isValid = true;
+
+      // Email validation
+      if (!email) {
+        errorDiv.innerHTML += '<p>Email is required.</p>';
+        isValid = false;
+      } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+        errorDiv.innerHTML += '<p>Please enter a valid email address.</p>';
+        isValid = false;
+      }
+
+      // Password validation
+      if (!password) {
+        errorDiv.innerHTML += '<p>Password is required.</p>';
+        isValid = false;
+      }
+
+      // If valid, submit the form
+      if (isValid) {
+        document.getElementById('formAuthentication').submit();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('formAuthentication').addEventListener('submit', validateLoginForm);
+    });
+  </script>
+</head>
+<body>
+  <!-- Content -->
+  <div class="container-xxl">
+    <div class="authentication-wrapper authentication-basic container-p-y">
+      <div class="authentication-inner">
+        <!-- Register -->
+        <div class="card">
+          <div class="card-body">
+            <!-- Logo -->
+            <div class="app-brand justify-content-center">
+              <a href="index.html" class="app-brand-link gap-2">
+                <span class="app-brand-logo demo">
+                  <div class="col-lg-3">
+                    <div class="header__logo">
+                      <a href="/"><img src="user/img/Avocado logo.png" alt="" /></a>
+                    </div>
+                  </div>
+                </span>
+              </a>
+            </div>
+            <!-- /Logo -->
+            <h4 class="mb-2">Welcome to Avocado! 👋</h4>
+            <p class="mb-4">Please sign-in to your account and start the adventure</p>
+            <% if (messages.error && messages.error.length > 0) { %>
+              <div class="error" role="alert"><%= messages.error[0] %></div>
+            <% } %>
+            <% if (messages.info && messages.info.length > 0) { %>
+              <div class="success" role="alert"><%= messages.info[0] %></div>
+            <% } %>
+            <% if (messages.success && messages.success.length > 0) { %>
+              <div class="success" role="alert"><%= messages.success[0] %></div>
+            <% } %>
+            <div id="error-message" style="color: red;"></div>
+            <form id="formAuthentication" class="mb-3" action="login" method="POST">
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email" autofocus />
+              </div>
+              <div class="mb-3 form-password-toggle">
+                <div class="d-flex justify-content-between">
+                  <label class="form-label" for="password">Password</label>
+                  <a href="/forgot-password"><small>Forgot Password?</small></a>
+                </div>
+                <div class="input-group input-group-merge">
+                  <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
+                  <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                </div>
+              </div>
+              <div class="mb-3">
+                <button class="btn btn-primary d-grid w-100" type="submit">Sign in</button>
+              </div>
+            </form>
+            <p class="text-center">
+              <span>New on our platform?</span>
+              <a href="/signup"><span>Create an account</span></a>
+            </p>
+            <div class="mb-3">
+              <a href="/auth/google" class="btn btn-danger d-grid w-100"><i class="fab fa-google me-2"></i> Sign in with Google</a>
+            </div>
+          </div>
+        </div>
+        <!-- /Register -->
+      </div>
+    </div>
+  </div>
+</body>
+</html>
