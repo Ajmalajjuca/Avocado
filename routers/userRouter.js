@@ -2,13 +2,16 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/UserControlers/userController");
 const productController = require("../controllers/UserControlers/productController");
-const orderController = require("../controllers/UserControlers/profileController")
+const profileController = require("../controllers/UserControlers/profileController")
 const addressController = require("../controllers/UserControlers/addressController")
 const cartController =require("../controllers/UserControlers/cartController")
 const checkoutController = require("../controllers/UserControlers/checkoutController")
 const { findCartByUser, authMiddleware } = require('../Middleware');
 const passport = require("passport");
 const userModel = require("../models/userModel");
+const orderController = require('../controllers/UserControlers/ordercontroler')
+const wishlistController = require('../controllers/UserControlers/wishlistController')
+const walletController = require('../controllers/UserControlers/walletController')
 
 router.get("/", userController.getHome);
 router.get("/shop", userController.getShop);
@@ -50,16 +53,13 @@ router.get("/categories/:id",productController.getcategoriesProduct)
 
 
 //profile
-router.get('/orders', orderController.getUserOrders);
-router.get('/wallet',orderController.getWalletInfo,)
-router.get('/ChangePass',orderController.ChangePass)
-router.post('/change-password',authMiddleware,orderController.changePassword)
-router.post('/wallet',orderController. addFunds);
+router.get('/orders', profileController.getUserOrders);
+router.get('/ChangePass',profileController.ChangePass)
+router.post('/change-password',authMiddleware,profileController.changePassword)
 
 //address
 router.get('/address', addressController.getAddresses);
 router.get('/addAddress', addressController.getAddAddresses);
-
 router.post('/addAddress',authMiddleware, addressController.addAddress);
 router.put('/editAddress/:id', addressController.editAddress);
 router.delete('/deleteAddress/:id', addressController.deleteAddress);
@@ -73,6 +73,7 @@ router.post('/cart/add', authMiddleware, findCartByUser, cartController.postcart
 router.post('/cart/remove', authMiddleware, findCartByUser, cartController.postremove);
 router.post('/cart/update', authMiddleware, findCartByUser, cartController.postupdate);
 router.get('/cart/count', authMiddleware, findCartByUser, cartController.cartcount);
+router.post('/cart/apply-coupon',authMiddleware,findCartByUser,cartController.applyCoupon)
 
 //checkout
 router.get('/checkout', authMiddleware, findCartByUser,checkoutController.getcheckout)
@@ -80,6 +81,27 @@ router.get('/order-confirmation/:orderId', authMiddleware, checkoutController.ge
 router.post('/place-order', authMiddleware, findCartByUser, checkoutController.placeOrder);
 router.post('/update-order-status',authMiddleware,checkoutController.UpdateOrderStatus)
 router.post('/cancel-order',authMiddleware,checkoutController.CancelOrder)
+router.post('/create-razorpay-order', authMiddleware, findCartByUser, checkoutController.createRazorpayOrder);
+
+//wallet
+router.get('/wallet',walletController.getWalletInfo,)
+router.post('/create-order',walletController.createOrder);
+router.post('/verify-payment',walletController.verifyPayment)
+
+
+//order
+router.get('/orders/:orderId/details',orderController.getOrderid)
+router.post('/orders/:orderId/cancel',orderController.postOrderCancel)
+router.post('/orders/:orderId/return',orderController.postOrderReturn)
+
+//Wishlist
+router.get('/wishlist', authMiddleware, wishlistController.getWishlist);
+router.post('/wishlist/add', authMiddleware, wishlistController.addToWishlist);
+router.post('/wishlist/remove', authMiddleware, wishlistController.removeFromWishlist);
+router.post('/wishlist/move-to-cart', authMiddleware, wishlistController.moveToCart);
+router.get('/wishlist/count', authMiddleware, wishlistController.getWishlistCount);
+
+
 
 router.get('/check-auth', (req, res) => {
   res.json({ isLoggedIn: req.session.isAuth || false });

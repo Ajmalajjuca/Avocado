@@ -11,7 +11,10 @@
   <div class="humberger__menu__cart">
     <ul>
       <li>
-        <a href="#"><i class="fa fa-heart"></i> <span>0</span></a>
+        <a href="#" class="wishlist-button" id="wishlistButton">
+          <i class="fa fa-heart"></i> 
+          <span class="wishlist-count">0</span>
+      </a>
       </li>
       <li>
         <a href="#" class="cart-button" id="cartButton">
@@ -125,7 +128,10 @@
         <div class="header__cart">
           <ul>
             <li>
-              <a href="#"><i class="fa fa-heart"></i> <span>0</span></a>
+              <a href="#" class="wishlist-button" id="wishlistButton">
+                <i class="fa fa-heart"></i> 
+                <span class="wishlist-count">0</span>
+            </a>
             </li>
             <li>
                 <a href="#" class="cart-button" id="cartButton">
@@ -203,9 +209,106 @@
 
   // Update cart info on page load and every 30 seconds
   updateCartInfo();
-  setInterval(updateCartInfo, 1);
+  // setInterval(updateCartInfo, 1);
   
   
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const wishlistButtons = document.querySelectorAll('.wishlist-button');
+    
+    wishlistButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent the default link behavior
+            
+            // Check if the user is logged in
+            fetch('/check-auth', {
+                method: 'GET',
+                credentials: 'same-origin' // This is important to include cookies
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.isLoggedIn) {
+                    // If logged in, redirect to wishlist page
+                    window.location.href = '/wishlist';
+                } else {
+                    // If not logged in, redirect to login page
+                    window.location.href = '/login';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+
+    function updateWishlistInfo() {
+        fetch('/wishlist/count', { 
+            method: 'GET',
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Wishlist data:', data); // For debugging
+            const wishlistCounts = document.querySelectorAll('.wishlist-count');
+            wishlistCounts.forEach(count => {
+                count.textContent = data.itemCount || '0';
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching wishlist info:', error);
+        });
+    }
+
+    // Update wishlist info on page load and every 30 seconds
+    updateWishlistInfo();
+    setInterval(updateWishlistInfo, 30000);
+});
+
+async function addToWishlist(productId) {
+    try {
+      const response = await fetch("/wishlist/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId }),
+      });
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: data.message,
+        });
+        updateWishlistInfo();
+        
+
+        // Optionally, you can update the UI here
+      } else {
+        throw new Error(data.message || "Failed to add product to wishlist");
+      }
+    } catch (error) {
+      console.error("Error adding product to wishlist:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.message || "Failed to add product to wishlist",
+      });
+    }
+  }
+   
  </script>
 </header>

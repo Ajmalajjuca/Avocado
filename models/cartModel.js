@@ -34,7 +34,8 @@ const cartSchema = new Schema({
       type: Number,
       required: true,
       default: 0
-    }
+    },
+    discount: { type: Number, default: 0 }, 
   }, { strictPopulate: false });
 
 const cartModel = mongoose.model('cart', cartSchema);

@@ -21,11 +21,23 @@
     <link rel="stylesheet" href="/user/css/owl.carousel.min.css" type="text/css">
     <link rel="stylesheet" href="/user/css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="/user/css/style.css" type="text/css">
+    <link rel="stylesheet" href="/user/magiczoomplus/magiczoomplus.css">
+
     <style>
         .qtybtn.disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+  #zoom-placeholder {
+    position: fixed;
+    bottom: 25px;
+    left: 10px;
+    z-index: 100;
+    width: 150px;
+    height: 150px;
+  }
+
     </style>
 </head>
 <body>
@@ -88,22 +100,29 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-6 col-md-6">
-              <div class="product__details__pic">
-                <div class="product__details__pic__item">
-                    <% if (product.images && product.images.length > 0) { %>
-                        <img class="product__details__pic__item--large" src="<%= product.images[0] %>" alt="">
-                    <% } else { %>
-                        <img class="product__details__pic__item--large" src="/path/to/default-image.jpg" alt="No Image Available">
-                    <% } %>
+                <div class="product__details__pic">
+                    <!-- Main Image for Zoom -->
+                    <div class="product__details__pic__item">
+                        <% if (product.images && product.images.length > 0) { %>
+                            <a id="mainImage" href="<%= product.images[0] %>" class="MagicZoom" data-options="zoomWidth:400px; zoomHeight:400px; zoomPosition: right;" title="<%= product.name %>">
+                                <img class="product__details__pic__item--large" src="<%= product.images[0] %>" alt="<%= product.name %>">
+                            </a>
+                        <% } else { %>
+                            <img class="product__details__pic__item--large" src="/path/to/default-image.jpg" alt="No Image Available">
+                        <% } %>
+                    </div>
+                
+                    <!-- Thumbnail Images -->
+                    <div class="product__details__pic__slider owl-carousel">
+                        <% if (product.images && product.images.length > 1) { %>
+                            <% product.images.slice(1).forEach((image, index) => { %>
+                                <a href="javascript:void(0);" class="thumbnail" data-image="<%= image %>" data-image-big="<%= image %>">
+                                    <img src="<%= product.thumbUrls && product.thumbUrls[index + 1] ? product.thumbUrls[index + 1] : image %>" alt="<%= product.name %>">
+                                </a>
+                            <% }) %>
+                        <% } %>
+                    </div>
                 </div>
-                <div class="product__details__pic__slider owl-carousel">
-                  <% if (product.images && product.images.length > 1) { %>
-                    <% product.images.slice(1).forEach((image, index) => { %>
-                        <img data-imgbigurl="<%= image %>" src="<%= product.thumbUrls && product.thumbUrls[index + 1] ? product.thumbUrls[index + 1] : image %>" alt="">
-                    <% }) %>
-                <% } %>
-                </div>
-            </div>
             </div>
             <div class="col-lg-6 col-md-6">
                 <div class="product__details__text">
@@ -241,6 +260,12 @@
 <script src="/user/js/owl.carousel.min.js"></script>
 <script src="/user/js/main.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/user/magiczoomplus/magiczoomplus.js"></script>
+<script>
+</script>
+
+
+
 
 <script>
   $('.owl-carousel').owlCarousel({
@@ -370,6 +395,26 @@ function updateQuantityUI(productId, quantity, maxStock) {
     // Disable increase button if quantity equals max stock
     increaseBtn.classList.toggle('disabled', quantity === maxStock);
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle thumbnail click
+    document.querySelectorAll('.product__details__pic__slider .thumbnail').forEach(function(thumbnail) {
+        thumbnail.addEventListener('click', function() {
+            var newImageSrc = this.getAttribute('data-image');
+            var newImageBig = this.getAttribute('data-image-big');
+            
+            // Update the main image src and href
+            var mainImageLink = document.getElementById('mainImage');
+            mainImageLink.setAttribute('href', newImageBig);
+            
+            var mainImage = mainImageLink.querySelector('img');
+            mainImage.src = newImageSrc;
+
+            // Update MagicZoom
+            MagicZoom.update('mainImage', newImageBig, newImageSrc);
+        });
+    });
+});
 
 </script>
    

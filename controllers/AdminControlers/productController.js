@@ -43,7 +43,8 @@ const getProducts = async (req, res) => {
           categories,
           currentPage: page,
           totalPages: totalPages,
-          search
+          search,
+           activePage: 'products'
         });
       } else {
         res.redirect("/admin");
@@ -63,7 +64,7 @@ const getAddProduct=async (req, res) => {
       if (req.session.isAdmin) {
         const categories = await categoryModel.find({});
         const admin = req.session.admin;
-        res.render("admin/addProducts", { categories, admin: admin.username });
+        res.render("admin/addProducts", { categories, admin: admin.username, activePage: 'products' });
       } else {
         res.redirect("/admin");
       }
@@ -75,47 +76,74 @@ const getAddProduct=async (req, res) => {
 
   const addProduct = async (req, res) => {
     try {
-      const { productname, productdescription, price, currency, stock, category } = req.body;
+      const { productname, productdescription, price, stock, category } = req.body;
       const images = req.files;
+      let croppedImages = [];
   
-      const processedImages = [];
+      // Ensure the directory exists
+      const imagesDir = path.join(__dirname, "../../uploads");
+      try {
+        await fs.access(imagesDir);
+      } catch (err) {
+        await fs.mkdir(imagesDir, { recursive: true });
+      }
   
-      if (images && images.length > 0) {
-        for (let image of images) {
-          const inputPath = image.path;
-          const outputPath = path.join('uploads', 'resized-' + image.filename);
-  
-          try {
-            await sharp(inputPath)
-              .resize(300, 300)
-              .toFormat('jpeg')
-              .toFile(outputPath);
-  
-            processedImages.push('/uploads/resized-' + image.filename);
-          } catch (error) {
-            console.error('Error processing image with Sharp:', error);
-            if (fs.existsSync(outputPath)) {
-              fs.unlinkSync(outputPath);
-            }
+      for (let i = 0; i < images.length; i++) {
+        const imageKey = `croppedImage${i}`;
+        if (req.body[imageKey]) {
+          if (typeof req.body[imageKey] === "string") {
+            console.log(`Processing cropped image for key: ${imageKey}`);
+            const croppedImageBuffer = Buffer.from(
+              req.body[imageKey].replace(/^data:image\/\w+;base64,/, ""),
+              "base64"
+            );
+            const croppedImageFilename = `cropped_${Date.now()}_${images[i].originalname}`;
+            const croppedImagePath = path.join(imagesDir, croppedImageFilename);
+            await sharp(croppedImageBuffer)
+              .resize(2000, 2000, {
+                fit: sharp.fit.cover,
+                quality: 100
+              })
+              .toFile(croppedImagePath);
+            console.log(`Cropped image saved at: ${croppedImagePath}`);
+            croppedImages.push(`/uploads/${croppedImageFilename}`);
+          } else {
+            console.error(`req.body[imageKey] is not a string: `, req.body[imageKey]);
           }
+        } else {
+          console.log(`Processing original image: ${images[i].filename}`);
+          const originalImagePath = path.join(imagesDir, `cropped_${Date.now()}_${images[i].originalname}`);
+          await sharp(images[i].path)
+            .resize(2000, 2000, {
+              fit: sharp.fit.cover,
+              quality: 100
+            })
+            .toFile(originalImagePath);
+          console.log(`Resized original image saved at: ${originalImagePath}`);
+          croppedImages.push(`/uploads/${path.basename(originalImagePath)}`);
         }
       }
+  
+      console.log("Cropped Images Array: ", croppedImages);
   
       const newProduct = new productModel({
         name: productname,
         description: productdescription,
         price: price,
-        currency: currency,
         stock: stock,
-        images: processedImages,
-        category: category
+        category: category,
+        images: croppedImages,
+        status: true,
       });
   
       await newProduct.save();
-      res.redirect('/admin/products');
+  
+      console.log("Product saved successfully");
+  
+      res.redirect("/admin/products");
     } catch (error) {
-      console.error('Error in addProduct controller:', error);
-      res.status(500).send('Server Error');
+      console.error(error);
+      res.status(500).send("Internal Server Error");
     }
   };
   
@@ -208,7 +236,8 @@ const getAddProduct=async (req, res) => {
             pageTitle: 'Edit Product',
             product: product,
             admin: admin.username,
-            categories: await categoryModel.find() // Assuming you have a Category model
+            categories: await categoryModel.find(), // Assuming you have a Category model
+             activePage: 'products'
         });
     }else{
         res.redirect("/admin/products");

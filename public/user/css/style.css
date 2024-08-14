@@ -50,6 +50,25 @@ h6 {
 	font-family: "Cairo", sans-serif;
 }
 
+.colored-toast.swal2-icon-success {
+    background-color: #28a745 !important;
+}
+.colored-toast.swal2-icon-error {
+    background-color: #dc3545 !important;
+}
+.colored-toast.swal2-icon-warning {
+    background-color: #ffc107 !important;
+}
+.colored-toast.swal2-icon-info {
+    background-color: #17a2b8 !important;
+}
+.colored-toast .swal2-title {
+    color: white;
+}
+.colored-toast.swal2-icon-warning .swal2-title {
+    color: black;
+}
+
 h1 {
 	font-size: 70px;
 }

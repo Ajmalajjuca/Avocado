@@ -95,7 +95,7 @@
                 <img src="<%= product.images[0] %>" alt="<%= product.name %>" />
                 <ul class="featured__item__pic__hover">
                   <li>
-                    <a href="#"><i class="fa fa-heart"></i></a>
+                    <a href="#" onclick="addToWishlist('<%= product._id %>')"><i class="fa fa-heart"></i></a>
                   </li>
 
                   <li>
@@ -334,58 +334,65 @@
  
 
       async function addToCart(productId) {
-        const quantityInput = document.getElementById(`quantity-${productId}`);
-        const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
-        const maxStock = quantityInput
-          ? parseInt(quantityInput.dataset.stock)
-          : Infinity;
+    const quantityInput = document.getElementById(`quantity-${productId}`);
+    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+    const maxStock = quantityInput
+        ? parseInt(quantityInput.dataset.stock)
+        : Infinity;
 
-        if (quantity > maxStock) {
-          Swal.fire({
+    if (quantity > maxStock) {
+        Swal.fire({
             icon: "error",
             title: "Oops...",
             text: `Sorry, only ${maxStock} items are available in stock.`,
-          });
-          return;
-        }
+        });
+        return;
+    }
 
-        try {
-          const response = await fetch("/cart/add", {
+    try {
+        const response = await fetch("/cart/add", {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({ productId, quantity }),
-          });
+        });
 
-          if (response.status === 401) {
+        if (response.status === 401) {
             window.location.href = "/login";
             return;
-          }
+        }
 
-          const data = await response.json();
+        const data = await response.json();
 
-          if (response.ok) {
+        if (response.ok) {
             Swal.fire({
-              icon: "success",
-              title: "Success!",
-              text: data.message,
+                icon: "success",
+                title: "Success!",
+                text: data.message,
             });
 
-            
             updateCartCount(data.cartItemCount);
-          } else {
-            throw new Error(data.message || "Failed to add product to cart");
-          }
-        } catch (error) {
-          console.error("Error adding product to cart:", error);
-          Swal.fire({
+        } else {
+            if (data.message === 'Not enough stock available') {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: `Sorry, only ${data.availableStock} items are available in stock.`,
+                });
+            } else {
+                throw new Error(data.message || "Failed to add product to cart");
+            }
+        }
+    } catch (error) {
+        console.error("Error adding product to cart:", error);
+        Swal.fire({
             icon: "error",
             title: "Oops...",
             text: error.message || "Failed to add product to cart",
-          });
-        }
-      }
+        });
+    }
+}
 
       function updateCartCount(count) {
   const cartCountElement = document.getElementById('cart-count');
@@ -422,5 +429,47 @@
         setInterval(checkUserStatus, 10000);
       });
     </script>
+
+    <script>
+  async function addToWishlist(productId) {
+    try {
+      const response = await fetch("/wishlist/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId }),
+      });
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: data.message,
+        });
+        
+
+        // Optionally, you can update the UI here
+      } else {
+        throw new Error(data.message || "Failed to add product to wishlist");
+      }
+    } catch (error) {
+      console.error("Error adding product to wishlist:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.message || "Failed to add product to wishlist",
+      });
+    }
+  }
+</script>
+
   </body>
 </html>

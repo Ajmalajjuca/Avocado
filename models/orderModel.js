@@ -36,6 +36,11 @@ const schema = new mongoose.Schema({
         default: 'Pending',
         required: true
     },
+    paymentstatus: {
+        type: String,
+        default: 'Pending',
+        required: true
+    },
     address: {
         type: {
             name: String,
@@ -77,7 +82,9 @@ const schema = new mongoose.Schema({
             type: String,
             default: 'Pending'
         }
-    }]
+    }],
+    razorpay_order_id: { type: String },
+    razorpay_payment_id: { type: String },
 });
 
 const orderModel = mongoose.model('order', schema);

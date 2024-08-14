@@ -9,43 +9,33 @@
     </div>
     <nav>
         <ul class="menu-aside">
-            <li class="menu-item active">
+            <li class="menu-item <%= activePage === 'dashboard' ? 'active' : '' %>">
                 <a class="menu-link" href="dashboard"> <i class="icon material-icons md-home"></i>
                     <span class="text">Dashboard</span>
                 </a>
             </li>
-            
-            
-            
-            
-            
-            
-            
-            
-            <li class="menu-item">
+            <li class="menu-item <%= activePage === 'products' ? 'active' : '' %>">
                 <a class="menu-link" href="products"> <i class="icon material-icons md-shopping_bag"></i>
                     <span class="text">Products</span> </a>
             </li>
-            <li class="menu-item">
+            <li class="menu-item <%= activePage === 'categories' ? 'active' : '' %>">
                 <a class="menu-link" href="categories"> <i class="icon material-icons md-stars"></i>
                     <span class="text">Categories</span> </a>
             </li>
-            <li class="menu-item">
+            <li class="menu-item <%= activePage === 'orders' ? 'active' : '' %>">
                 <a class="menu-link" href="orders"> <i class="icon material-icons md-shopping_cart"></i>
                     <span class="text">Orders</span> </a>
             </li>
-            <li class="menu-item">
-                <a class="menu-link" disabled href="#"> <i class="icon material-icons md-pie_chart"></i>
-                    <span class="text">Statistics</span>
-                </a>
-            </li>
-            <li class="menu-item">
+            <li class="menu-item <%= activePage === 'users' ? 'active' : '' %>">
                 <a class="menu-link" href="users"> <i class="icon material-icons md-person"></i>
                     <span class="text">Users</span>
                 </a>
             </li>
-           
-            
+            <li class="menu-item <%= activePage === 'coupon' ? 'active' : '' %>">
+                <a class="menu-link" href="coupon"> <i class="icon material-icons md-local_offer"></i>
+                    <span class="text">Coupon</span>
+                </a>
+            </li>
         </ul>
         <hr>
         <ul class="menu-aside">
@@ -53,13 +43,8 @@
                 <a class="menu-link" href="#"> <i class="icon material-icons md-settings"></i>
                     <span class="text">Settings</span>
                 </a>
-                
             </li>
-            <li class="menu-item">
-                <a class="menu-link" href="page-blank.html"> <i class="icon material-icons md-local_offer"></i>
-                    <span class="text"> Starter page </span>
-                </a>
-            </li>
+            
         </ul>
         <br>
         <br>

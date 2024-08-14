@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <body>
+    <%- include('partials/side.ejs') %>
+    <div class="screen-overlay"></div>
+
+    <main class="main-wrap">
+      <%- include('partials/heder.ejs') %>
+      <section class="content-main">
+        <div class="content-header">
+          <div>
+            <h2 class="content-title card-title">Coupons</h2>
+            <p>Create a new coupon for your store</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-3">
+                <form
+                  id="createCouponForm"
+                  action="/admin/createCoupon"
+                  method="POST"
+                >
+                  <div class="mb-4">
+                    <label for="couponCode" class="form-label">Coupon Code</label>
+                    <input
+                      type="text"
+                      placeholder="Enter coupon code"
+                      class="form-control"
+                      name="couponCode"
+                      id="couponCode"
+                      required
+                    />
+                  </div>
+                  <div class="mb-4">
+                    <label for="type" class="form-label">Discount Type</label>
+                    <select class="form-control" name="type" id="type" required>
+                      <option value="percentage">Percentage</option>
+                      <option value="fixed_amount">Fixed Amount</option>
+                    </select>
+                  </div>
+                  <div class="mb-4">
+                    <label for="discount" class="form-label">Discount</label>
+                    <input
+                      type="number"
+                      placeholder="Enter discount value"
+                      class="form-control"
+                      name="discount"
+                      id="discount"
+                      min="0"
+                      max="100"
+                      required
+                    />
+                  </div>
+                  <div class="mb-4">
+                    <label for="minimumPrice" class="form-label">Minimum Price</label>
+                    <input
+                      type="number"
+                      placeholder="Enter minimum price"
+                      class="form-control"
+                      name="minimumPrice"
+                      id="minimumPrice"
+                      required
+                    />
+                  </div>
+                  <div class="mb-4">
+                    <label for="maxRedeem" class="form-label">Max Redeem</label>
+                    <input
+                      type="number"
+                      placeholder="Enter maximum redemptions"
+                      class="form-control"
+                      name="maxRedeem"
+                      id="maxRedeem"
+                      required
+                    />
+                  </div>
+                  <div class="mb-4">
+                    <label for="expiry" class="form-label">Expiry Date</label>
+                    <input
+                      type="date"
+                      class="form-control"
+                      name="expiry"
+                      id="expiry"
+                      required
+                    />
+                  </div>
+                  <div class="d-grid">
+                    <button class="btn btn-primary" type="submit">
+                      Create Coupon
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <div class="col-md-9">
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Coupon Code</th>
+                        <th>Discount</th>
+                        <th>Type</th>
+                        <th>Minimum Price</th>
+                        <th>Max Redeem</th>
+                        <th>Expiry</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% coupons.forEach(coupon => { %>
+                        <% if (coupon._id) { %>
+                            <tr>
+                              <td><%= coupon.couponCode %></td>
+                              <td><%= coupon.discount %></td>
+                              <td><%= coupon.type %></td>
+                              <td><%= coupon.minimumPrice %></td>
+                              <td><%= coupon.maxRedeem %></td>
+                              <td><%= new Date(coupon.expiry).toLocaleDateString() %></td>
+                              <td>
+                                <span class="badge rounded-pill <%= coupon.status ? 'alert-success' : 'alert-danger' %>">
+                                  <%= coupon.status ? 'Active' : 'Inactive' %>
+                                </span>
+                              </td>
+                              <td class="text-end">
+                                <a href="/admin/editCoupon/<%= coupon._id %>" class="btn btn-sm btn-brand rounded font-sm mt-15">
+                                  Edit
+                                </a>
+                                  <a href="#" class="btn btn-sm btn-brand rounded font-sm mt-15 toggle-status-btn" data-coupon-id="<%= coupon._id %>">
+                                    <%= coupon.status ? 'Deactivate' : 'Activate' %>
+                                  </a>
+                              </td>
+                            </tr>
+                          <% } else { %>
+                            <tr>
+                              <td colspan="8" class="text-center">
+                                <span class="alert alert-warning">Coupon not available</span>
+                              </td>
+                            </tr>
+                          <% } %>
+                          
+                      <% }) %>
+                    </tbody>
+                  </table>
+                  
+                  <!-- Modal for editing coupon -->
+                 
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer class="main-footer font-xs">
+        <div class="row pb-30 pt-15">
+          <div class="col-sm-6">
+            <script>
+              document.write(new Date().getFullYear());
+            </script>
+            ©, Evara - HTML Ecommerce Template.
+          </div>
+          <div class="col-sm-6">
+            <div class="text-sm-end">All rights reserved</div>
+          </div>
+        </div>
+      </footer>
+    </main>
+    <%- include('partials/foot.ejs') %>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Bootstrap modal
+        const editCouponModal = new bootstrap.Modal(document.getElementById('editCouponModal'));
+      
+        // Event delegation for edit and toggle status buttons
+        document.addEventListener('click', function(e) {
+          const editButton = e.target.closest('.edit-coupon-btn');
+          const toggleButton = e.target.closest('.toggle-status-btn');
+          
+          if (editButton) {
+            e.preventDefault();
+            const couponId = editButton.dataset.couponId;
+            editCoupon(couponId);
+          } else if (toggleButton) {
+            e.preventDefault();
+            const couponId = toggleButton.dataset.couponId;
+            toggleCouponStatus(couponId);
+          }
+        });
+      
+        // Event listener for create coupon form
+        document.getElementById("createCouponForm").addEventListener("submit", function (event) {
+          event.preventDefault();
+          createCoupon();
+        });
+      
+        // Event listener for edit coupon form
+        document.getElementById("editCouponForm").addEventListener("submit", function (event) {
+          event.preventDefault();
+          updateCoupon();
+        });
+      
+        function editCoupon(couponId) {
+          fetch(`/admin/getCoupon/${couponId}`)
+            .then(response => response.json())
+            .then(data => {
+              document.getElementById("couponId").value = data._id;
+              document.getElementById("editCouponCode").value = data.couponCode;
+              document.getElementById("editType").value = data.type;
+              document.getElementById("editDiscount").value = data.discount;
+              document.getElementById("editMinimumPrice").value = data.minimumPrice;
+              document.getElementById("editMaxRedeem").value = data.maxRedeem;
+              document.getElementById("editExpiry").value = data.expiry.split('T')[0];
+      
+              // Show the modal
+              editCouponModal.show();
+            })
+            .catch(error => {
+              console.error('Error fetching coupon:', error);
+              Swal.fire("Error!", "Failed to load coupon data.", "error");
+            });
+        }
+      
+        function createCoupon() {
+          const couponCode = document.getElementById("couponCode").value.trim();
+          const discount = document.getElementById("discount").value;
+          const minimumPrice = document.getElementById("minimumPrice").value;
+          const maxRedeem = document.getElementById("maxRedeem").value;
+          const expiry = document.getElementById("expiry").value;
+      
+          if (couponCode === "") {
+            Swal.fire("Error!", "Coupon code cannot be empty.", "error");
+            return;
+          }
+      
+          Swal.fire({
+            title: "Are you sure?",
+            text: `Do you want to create the coupon "${couponCode}"?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, create it!",
+            cancelButtonText: "No, cancel",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              fetch("/admin/createCoupon", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  couponCode: couponCode,
+                  type: document.getElementById("type").value,
+                  discount: discount,
+                  minimumPrice: minimumPrice,
+                  maxRedeem: maxRedeem,
+                  expiry: expiry,
+                }),
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  Swal.fire({
+                    title: "Created!",
+                    text: data.message,
+                    icon: "success",
+                    confirmButtonText: "Okay",
+                  }).then(() => {
+                    location.reload();
+                  });
+                } else {
+                  Swal.fire("Error!", data.message, "error");
+                }
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                Swal.fire("Error!", "There was a problem creating the coupon.", "error");
+              });
+            }
+          });
+        }
+      
+        function updateCoupon() {
+          const couponId = document.getElementById("couponId").value;
+          const couponCode = document.getElementById("editCouponCode").value.trim();
+          const type = document.getElementById("editType").value;
+          const discount = parseFloat(document.getElementById("editDiscount").value);
+          const minimumPrice = parseFloat(document.getElementById("editMinimumPrice").value);
+          const maxRedeem = parseInt(document.getElementById("editMaxRedeem").value);
+          const expiry = document.getElementById("editExpiry").value;
+      
+          if (couponCode === "" || discount < 0 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
+            Swal.fire("Error!", "Please fill out all fields correctly.", "error");
+            return;
+          }
+      
+          Swal.fire({
+            title: "Are you sure?",
+            text: `Do you want to update the coupon "${couponCode}"?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, update it!",
+            cancelButtonText: "No, cancel",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              fetch(`/admin/updateCoupon/${couponId}`, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  couponCode,
+                  type,
+                  discount,
+                  minimumPrice,
+                  maxRedeem,
+                  expiry,
+                }),
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  Swal.fire({
+                    title: "Updated!",
+                    text: data.message,
+                    icon: "success",
+                    confirmButtonText: "Okay",
+                  }).then(() => {
+                    location.reload();
+                  });
+                } else {
+                  Swal.fire("Error!", data.message, "error");
+                }
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                Swal.fire("Error!", "There was a problem updating the coupon.", "error");
+              });
+            }
+          });
+        }
+      
+        function toggleCouponStatus(couponId) {
+          fetch(`/admin/coupons/${couponId}/toggleStatus`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                confirmButtonText: 'Okay',
+              }).then(() => {
+                location.reload();
+              });
+            } else {
+              Swal.fire('Error!', data.message, 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error!', 'There was a problem toggling the coupon status.', 'error');
+          });
+        }
+      });
+      </script>
+  </body>
+</html>

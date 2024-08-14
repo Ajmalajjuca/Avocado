@@ -5,6 +5,7 @@ const productController = require("../controllers/AdminControlers/productControl
 const categorieController = require("../controllers/AdminControlers/categorieControler");
 const userController = require("../controllers/AdminControlers/showuserControler")
 const orderControler = require('../controllers/AdminControlers/orderControler')
+const couponControler = require('../controllers/AdminControlers/couponControler') 
 const multer = require('multer');
 const path = require('path');
 
@@ -80,5 +81,18 @@ router.patch('/users/:id/block',userController.blockUser);
 
 //showOrder
 router.get('/orders',orderControler.getAllOrders)
-router.post('/order/:id/update-status',orderControler.updatestatus)
+router.post('/order/:id/update-status', orderControler.updatestatus);
+router.get('/orders/:orderId/details', orderControler.orderDetails);
+
+
+//show coupon
+
+router.get('/coupon',couponControler.getCoupon);
+router.post('/createCoupon',couponControler.postCreateCoupon)
+router.get('/editCoupon/:id',couponControler.getEditCoupon)
+router.post('/updateCoupon/:id',couponControler.updateCoupon)
+router.patch('/coupons/:id/toggleStatus',couponControler.updatestatus)
+
+
+
 module.exports = router;

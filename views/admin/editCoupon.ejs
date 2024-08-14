@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head.ejs') %>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <body>
+    <%- include('partials/side.ejs') %>
+    <div class="screen-overlay"></div>
+
+    <main class="main-wrap">
+      <%- include('partials/heder.ejs') %>
+      <section class="content-main">
+        <div class="content-header">
+          <div>
+            <h2 class="content-title card-title">Edit Coupon</h2>
+            
+            <p>Update the details of your existing coupon</p>
+          </div>
+          <div>
+            <a href="/admin/categories" class="btn btn-primary"><i class="material-icons md-arrow_back"></i> Back to list</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mx-auto">
+                <form id="editCouponForm" action="/admin/updateCoupon/<%= coupon._id %>" method="POST">
+                  <div class="mb-4">
+                    <label for="couponCode" class="form-label">Coupon Code</label>
+                    <input
+                      type="text"
+                      placeholder="Enter coupon code"
+                      class="form-control"
+                      name="couponCode"
+                      id="couponCode"
+                      value="<%= coupon.couponCode %>"
+                      required
+                    />
+                  </div>
+                  <div class="mb-4">
+                    <label for="type" class="form-label">Discount Type</label>
+                    <select class="form-control" name="type" id="type" required>
+                      <option value="percentage" <%= coupon.type === 'percentage' ? 'selected' : '' %>>Percentage</option>
+                      <option value="fixed_amount" <%= coupon.type === 'fixed_amount' ? 'selected' : '' %>>Fixed Amount</option>
+                    </select>
+                  </div>
+                  <div class="mb-4">
+                    <label for="discount" class="form-label">Discount</label>
+                    <input
+                      type="number"
+                      placeholder="Enter discount value"
+                      class="form-control"
+                      name="discount"
+                      id="discount"
+                      min="0"
+                      max="100"
+                      value="<%= coupon.discount %>"
+                      required
+                    />
+                  </div>
+                  <div class="mb-4">
+                    <label for="minimumPrice" class="form-label">Minimum Price</label>
+                    <input
+                      type="number"
+                      placeholder="Enter minimum price"
+                      class="form-control"
+                      name="minimumPrice"
+                      id="minimumPrice"
+                      value="<%= coupon.minimumPrice %>"
+                      required
+                    />
+                  </div>
+                  <div class="mb-4">
+                    <label for="maxRedeem" class="form-label">Max Redeem</label>
+                    <input
+                      type="number"
+                      placeholder="Enter maximum redemptions"
+                      class="form-control"
+                      name="maxRedeem"
+                      id="maxRedeem"
+                      value="<%= coupon.maxRedeem %>"
+                      required
+                    />
+                  </div>
+                  <div class="mb-4">
+                    <label for="expiry" class="form-label">Expiry Date</label>
+                    <input
+                      type="date"
+                      class="form-control"
+                      name="expiry"
+                      id="expiry"
+                      value="<%= new Date(coupon.expiry).toISOString().split('T')[0] %>"
+                      required
+                    />
+                  </div>
+                  <div class="d-grid">
+                    <button class="btn btn-primary" type="submit">
+                      Update Coupon
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer class="main-footer font-xs">
+        <div class="row pb-30 pt-15">
+          <div class="col-sm-6">
+            <script>
+              document.write(new Date().getFullYear());
+            </script>
+            ©, Evara - HTML Ecommerce Template.
+          </div>
+          <div class="col-sm-6">
+            <div class="text-sm-end">All rights reserved</div>
+          </div>
+        </div>
+      </footer>
+    </main>
+    <%- include('partials/foot.ejs') %>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById("editCouponForm").addEventListener("submit", function (event) {
+          event.preventDefault();
+          updateCoupon();
+        });
+
+        function updateCoupon() {
+          const couponId = '<%= coupon._id %>';
+          const couponCode = document.getElementById("couponCode").value.trim();
+          const type = document.getElementById("type").value;
+          const discount = parseFloat(document.getElementById("discount").value);
+          const minimumPrice = parseFloat(document.getElementById("minimumPrice").value);
+          const maxRedeem = parseInt(document.getElementById("maxRedeem").value);
+          const expiry = document.getElementById("expiry").value;
+
+          if (couponCode === "" || discount < 0 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
+            Swal.fire("Error!", "Please fill out all fields correctly.", "error");
+            return;
+          }
+
+          Swal.fire({
+            title: "Are you sure?",
+            text: `Do you want to update the coupon "${couponCode}"?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, update it!",
+            cancelButtonText: "No, cancel",
+          }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/admin/updateCoupon/${couponId}`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    couponCode,
+    type,
+    discount,
+    minimumPrice,
+    maxRedeem,
+    expiry,
+  }),
+})
+.then(response => {
+  console.log('Response status:', response.status);
+  console.log('Response headers:', response.headers.get('content-type'));
+  return response.text(); // Change this from response.json() to response.text()
+})
+.then(text => {
+  console.log('Raw response:', text);
+  try {
+    return JSON.parse(text); // Try to parse the text as JSON
+  } catch (e) {
+    throw new SyntaxError('Invalid JSON: ' + text);
+  }
+})
+.then(data => {
+  console.log('Parsed data:', data);
+  if (data.success) {
+    Swal.fire({
+      title: "Updated!",
+      text: data.message,
+      icon: "success",
+      confirmButtonText: "Okay",
+    }).then(() => {
+      window.location.href = '/admin/coupon';
+    });
+  } else {
+    Swal.fire("Error!", data.message, "error");
+  }
+})
+.catch((error) => {
+  console.error("Error details:", error);
+  let errorMessage = "There was a problem updating the coupon.";
+  if (error instanceof TypeError) {
+    errorMessage = "Network error. Please check your connection.";
+  } else if (error instanceof SyntaxError) {
+    errorMessage = "Received invalid response from server: " + error.message;
+  }
+  Swal.fire("Error!", errorMessage, "error");
+});
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

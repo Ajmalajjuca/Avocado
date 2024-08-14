@@ -12,7 +12,7 @@ const getAllUser = async (req, res) => {
     if (req.session.isAdmin) {
       const users = await userModel.find({ isAdmin: false });
       const admin = req.session.admin;
-      res.render("admin/User", { users:users, admin: admin.username });
+      res.render("admin/User", { users:users, admin: admin.username, activePage: 'users' });
       
     } else {
       res.redirect("/admin");
@@ -60,7 +60,7 @@ const putUsers = async (req, res) => {
         if (!user) {
           return res.status(404).send({ error: "User not found" });
         }
-        res.render("admin/editUser", { user:user, admin: admin.username  });
+        res.render("admin/editUser", { user:user, admin: admin.username, activePage: 'users'  });
       } else {
         res.redirect("/admin");
       }
@@ -120,7 +120,7 @@ const putUsers = async (req, res) => {
   const getcreateUser = (req, res) => {
     if (req.session.isAdmin) {
         const admin = req.session.admin;
-      res.render("admin/createUser",{  admin: admin.username  });
+      res.render("admin/createUser",{  admin: admin.username, activePage: 'users'  });
     } else {
       res.redirect("/admin/dashboard");
     }

@@ -131,24 +131,28 @@
                 </div>
                 <div class="col-lg-6">
                     <div class="shoping__continue">
-                        <div class="shoping__discount">
-                            <h5>Discount Codes</h5>
-                            <form action="#">
-                                <input type="text" placeholder="Enter your coupon code">
-                                <button type="submit" class="site-btn">APPLY COUPON</button>
-                            </form>
-                        </div>
+                      <div class="shoping__discount">
+                        <h5>Discount Codes</h5>
+                        <form id="coupon-form">
+                            <input type="text" id="coupon-code" placeholder="Enter your coupon code">
+                            <button type="button" class="site-btn" onclick="applyCoupon()">APPLY COUPON</button>
+                        </form>
+                    </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <div class="shoping__checkout">
-                        <h5>Cart Total</h5>
-                        <ul>
-                          <li>Subtotal <span>₹ <%= (cart && cart.Cart_total ? cart.Cart_total.toFixed(2) : '0.00') %></span></li>
-                          <li>Total <span>₹ <%= (cart && cart.Cart_total ? cart.Cart_total.toFixed(2) : '0.00') %></span></li>
-                        </ul>
-                        <a href="/checkout" class="primary-btn">PROCEED TO CHECKOUT</a>
-                      </div>
+                  <div class="shoping__checkout">
+                    <h5>Cart Total</h5>
+                    <ul>
+                        <li>Subtotal <span>₹ <%= (cart && cart.Cart_total ? cart.Cart_total.toFixed(2) : '0.00') %></span></li>
+                        <% if (cart && cart.discount) { %>
+                        <li>Discount <span>₹ -<%= cart.discount.toFixed(2) %></span></li>
+                        <% } %>
+                        <li>Total <span>₹ <%= (cart && cart.Cart_total ? (cart.Cart_total - (cart.discount || 0)).toFixed(2) : '0.00') %></span></li>
+                    </ul>
+                    <a href="/checkout" class="primary-btn">PROCEED TO CHECKOUT</a>
+                </div>
+                
                 </div>
             </div>
         </div>
@@ -165,55 +169,56 @@
    <script>
 
 async function removeFromCart(productId) {
-  try {
-    console.log('Removing product:', productId);
-    const response = await fetch('/cart/remove', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ productId })
-    });
+    try {
+        console.log('Removing product:', productId);
+        const response = await fetch('/cart/remove', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId })
+        });
 
-    const data = await response.json();
-    console.log('Server response:', data);
+        const data = await response.json();
+        console.log('Server response:', data);
 
-    if (data.success) {
-      updateCartDisplay(data.cart);
-    } else {
-      throw new Error(data.message || 'Failed to remove product from cart');
+        if (data.success) {
+            updateCartDisplay(data.cart);
+            showToast('success', 'Product removed from cart');
+        } else {
+            throw new Error(data.message || 'Failed to remove product from cart');
+        }
+    } catch (error) {
+        console.error('Error removing product from cart:', error);
+        showToast('error', `Failed to remove product from cart: ${error.message}`);
     }
-  } catch (error) {
-    console.error('Error removing product from cart:', error);
-    alert(`Failed to remove product from cart: ${error.message}`);
-  }
 }
 
 async function updateQuantity(productId, quantity) {
-  try {
-    console.log('Updating product:', productId, 'to quantity:', quantity);
-    const response = await fetch('/cart/update', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ productId, quantity: parseInt(quantity) })
-    });
+    try {
+        console.log('Updating product:', productId, 'to quantity:', quantity);
+        const response = await fetch('/cart/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId, quantity: parseInt(quantity) })
+        });
 
-    const data = await response.json();
-    console.log('Server response:', data);
+        const data = await response.json();
+        console.log('Server response:', data);
 
-    if (data.success) {
-      updateCartDisplay(data.cart);
-    } else {
-      throw new Error(data.message || 'Failed to update quantity');
+        if (data.success) {
+            updateCartDisplay(data.cart);
+            showToast('success', 'Cart updated successfully');
+        } else {
+            throw new Error(data.message || 'Failed to update quantity');
+        }
+    } catch (error) {
+        console.error('Error updating quantity:', error);
+        showToast('error', `Failed to update quantity: ${error.message}`);
     }
-  } catch (error) {
-    console.error('Error updating quantity:', error);
-    alert(`Failed to update quantity: ${error.message}`);
-  }
 }
-
 
 
 function updateCartDisplay(cartData) {
@@ -251,17 +256,112 @@ function updateCartDisplay(cartData) {
     cartItemsContainer.innerHTML = '<tr><td colspan="5">Your cart is empty</td></tr>';
   }
 
+  // Update subtotal
+  const subtotalElement = document.querySelector('.shoping__checkout ul li:nth-child(1) span');
+  if (subtotalElement) {
+    subtotalElement.textContent = `₹ ${cartData.Cart_total.toFixed(2)}`;
+  }
+
+  // Update discount
+  const discountElement = document.querySelector('.shoping__checkout ul li:nth-child(2) span');
+  if (discountElement && cartData.discount) {
+    discountElement.textContent = `₹ -${cartData.discount.toFixed(2)}`;
+  } else if (discountElement) {
+    discountElement.textContent = '₹ 0.00';
+  }
+
   // Update total
-  const totalElement = document.querySelector('.shoping__checkout ul li:last-child span');
+  const totalElement = document.querySelector('.shoping__checkout ul li:nth-child(3) span');
   if (totalElement) {
-    totalElement.textContent = `₹ ${cartData.Cart_total.toFixed(2)}`;
+    const finalTotal = cartData.Cart_total - (cartData.discount || 0);
+    totalElement.textContent = `₹ ${finalTotal.toFixed(2)}`;
   }
 }
 
+async function applyCoupon() {
+    const couponCode = document.getElementById('coupon-code').value;
 
+    if (!couponCode) {
+        showToast('warning', 'Please enter a coupon code');
+        return;
+    }
 
+    try {
+        const response = await fetch('/cart/apply-coupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ couponCode })
+        });
 
-   </script>
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        console.log('Server response:', data);
+
+        if (data.success) {
+            console.log('Cart after coupon:', data.cart);
+            updateCartDisplay(data.cart);
+            showToast('success', 'Coupon applied successfully!');
+        } else {
+            console.warn('Failed to apply coupon:', data.message);
+            showToast('error', `Failed to apply coupon: ${data.message}`);
+        }
+    } catch (error) {
+        console.error('Error applying coupon:', error);
+        showToast('error', 'Failed to apply coupon');
+    }
+}
+
+function showToast(icon, title) {
+    let backgroundColor;
+    let textColor = '#ffffff';  // White text for all toasts
+
+    switch(icon) {
+        case 'success':
+            backgroundColor = '#28a745';  // Green
+            break;
+        case 'error':
+            backgroundColor = '#dc3545';  // Red
+            break;
+        case 'warning':
+            backgroundColor = '#ffc107';  // Yellow
+            textColor = '#000000';  // Black text for better contrast on yellow
+            break;
+        case 'info':
+            backgroundColor = '#17a2b8';  // Blue
+            break;
+        default:
+            backgroundColor = '#6c757d';  // Gray (default)
+    }
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        },
+        customClass: {
+            popup: 'colored-toast'
+        }
+    })
+
+    Toast.fire({
+        icon: icon,
+        title: title,
+        background: backgroundColor,
+        color: textColor
+    })
+}
+
+</script>
 </body>
 
 </html>

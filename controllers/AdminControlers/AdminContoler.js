@@ -82,7 +82,7 @@ const getDashboard = async (req, res) => {
         const users = await userModel.findOne({isAdmin:false})
         const admin = req.session.admin;
        
-        res.render("admin/Dashboard",{users:users,admin:admin.username})
+        res.render("admin/Dashboard",{users:users,admin:admin.username,activePage: 'dashboard'})
     }else{
         redirect("/admin")
     }

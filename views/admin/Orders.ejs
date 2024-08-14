@@ -1,200 +1,433 @@
 <!DOCTYPE html>
 <html lang="en">
-    <%- include('partials/head.ejs') %>
+  <%- include('partials/head.ejs') %>
 
-<body>
+  <body>
     <%- include('partials/side.ejs') %>
     <main class="main-wrap">
-        <%- include('partials/heder.ejs') %>
-        <section class="content-main">
-            <div class="content-header">
-                <div>
-                    <h2 class="content-title card-title">Order List</h2>
-                    <p>Manage all your orders from here.</p>
-                </div>
-                <div>
-                    <input type="text" placeholder="Search order ID" class="form-control bg-white">
-                </div>
+      <%- include('partials/heder.ejs') %>
+      <section class="content-main">
+        <div class="content-header">
+          <div>
+            <h2 class="content-title card-title">Order List</h2>
+            <p>Manage all your orders from here.</p>
+          </div>
+          <div>
+            <input
+              type="text"
+              placeholder="Search order ID"
+              class="form-control bg-white"
+            />
+          </div>
+        </div>
+        <div class="card mb-4">
+          <header class="card-header">
+            <div class="row gx-3">
+              <div class="col-lg-4 col-md-6 me-auto">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  class="form-control"
+                />
+              </div>
+              <div class="col-lg-2 col-6 col-md-3">
+                <select class="form-select">
+                  <option>Status</option>
+                  <option>Active</option>
+                  <option>Disabled</option>
+                  <option>Show all</option>
+                </select>
+              </div>
+              <div class="col-lg-2 col-6 col-md-3">
+                <select class="form-select">
+                  <option>Show 20</option>
+                  <option>Show 30</option>
+                  <option>Show 40</option>
+                </select>
+              </div>
             </div>
-            <div class="card mb-4">
-                <header class="card-header">
-                    <div class="row gx-3">
-                        <div class="col-lg-4 col-md-6 me-auto">
-                            <input type="text" placeholder="Search..." class="form-control">
-                        </div>
-                        <div class="col-lg-2 col-6 col-md-3">
-                            <select class="form-select">
-                                <option>Status</option>
-                                <option>Active</option>
-                                <option>Disabled</option>
-                                <option>Show all</option>
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-6 col-md-3">
-                            <select class="form-select">
-                                <option>Show 20</option>
-                                <option>Show 30</option>
-                                <option>Show 40</option>
-                            </select>
-                        </div>
-                    </div>
-                </header>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>#ID</th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Email</th>
-                                    <th scope="col">Total</th>
-                                    <th scope="col">Status</th>
-                                    <th scope="col">Date</th>
-                                    <th scope="col" class="text-end">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% orders.forEach(order => { %>
-                                    <tr>
-                                        <td><%= order.orderId %></td>
-                                        <td><b><%= order.userId.username %> </b></td>
-                                        <td><%= order.userId.email %></td>
-                                        <td>₹<%= order.amount %></td>
-                                        <td>
-                                            <% if (order.status === 'Pending') { %>
-                                                <span class="badge rounded-pill alert-warning">Pending</span>
-                                            <% } else if (order.status === 'pending') { %>
-                                                <span class="badge rounded-pill alert-warning">Pending</span>
-                                            <% } else if (order.status === 'Intransit') { %>
-                                                <span class="badge rounded-pill alert-primary">In-transit</span>
-                                            <% } else if (order.status === 'Canceled') { %>
-                                                <span class="badge rounded-pill alert-danger">Canceled</span>
-                                            <% } else if (order.status === 'Shipped') { %>
-                                                <span class="badge rounded-pill alert-info">Shipped</span>
-                                            <% } else if (order.status === 'Delivered') { %>
-                                                <span class="badge rounded-pill alert-success">Delivered</span>
-                                            <% } else if (order.status === 'Returned') { %>
-                                                <span class="badge rounded-pill alert-secondary">Returned</span>
-                                            <% } else { %>
-                                                <%= order.status %>
-                                            <% } %>
-                                        </td>
-                                        <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
-                                        <td class="text-end">
-                                            <a href="javascript:void(0);" class="btn btn-md rounded font-sm" onclick="toggleDetails('<%= order._id %>')">Detail</a>
-                                            <div class="dropdown">
-                                                <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
-                                                    <i class="material-icons md-more_horiz"></i>
-                                                </a>
-                                                <div class="dropdown-menu">
-                                                    <a class="dropdown-item" href="/order/<%= order.id %>/update"></a>
+          </header>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>#ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date</th>
+                    <th scope="col" class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% orders.forEach(order => { %>
+                  <tr>
+                    <td><%= order.orderId %></td>
+                    <td><b><%= order.userId.username %> </b></td>
+                    <td><%= order.userId.email %></td>
+                    <td>₹<%= order.amount %></td>
+                    <td>
+                      <% if (order.status === 'Pending') { %>
+                      <span class="badge rounded-pill alert-warning"
+                        >Pending</span
+                      >
+                      <% } else if (order.status === 'pending') { %>
+                      <span class="badge rounded-pill alert-warning"
+                        >Pending</span
+                      >
+                      <% } else if (order.status === 'Intransit') { %>
+                      <span class="badge rounded-pill alert-primary"
+                        >In-transit</span
+                      >
+                      <% } else if (order.status === 'Canceled') { %>
+                      <span class="badge rounded-pill alert-danger"
+                        >Canceled</span
+                      >
+                      <% } else if (order.status === 'Shipped') { %>
+                      <span class="badge rounded-pill alert-info">Shipped</span>
+                      <% } else if (order.status === 'Delivered') { %>
+                      <span class="badge rounded-pill alert-success"
+                        >Delivered</span
+                      >
+                      <% } else if (order.status === 'Returned') { %>
+                      <span class="badge rounded-pill alert-secondary"
+                        >Returned</span
+                      >
+                      <% } else { %> <%= order.status %> <% } %>
+                    </td>
+                    <td>
+                      <%= new Date(order.createdAt).toLocaleDateString() %>
+                    </td>
+                    <td class="text-end">
+                      <a
+                        href="javascript:void(0);"
+                        class="btn btn-md rounded font-sm"
+                        onclick="showOrderDetails('<%= order._id %>')"
+                        >Detail</a
+                      >
+                      <div class="dropdown">
+                        <a
+                          href="#"
+                          data-bs-toggle="dropdown"
+                          class="btn btn-light rounded btn-sm font-sm"
+                        >
+                          <i class="material-icons md-more_horiz"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                          <a
+                            class="dropdown-item"
+                            href="/order/<%= order.id %>/update"
+                          ></a>
 
-                                                    <a class="dropdown-item" href="#" onclick="updateStatus('<%= order._id %>', 'Pending')">Pending</a>
-                                                    <a class="dropdown-item" href="#" onclick="updateStatus('<%= order._id %>', 'Intransit')">In-transit</a>
-                                                    <a class="dropdown-item" href="#" onclick="updateStatus('<%= order._id %>', 'Canceled')">Canceled</a>
-                                                    <a class="dropdown-item" href="#" onclick="updateStatus('<%= order._id %>', 'Shipped')">Shipped</a>
-                                                    <a class="dropdown-item" href="#" onclick="updateStatus('<%= order._id %>', 'Delivered')">Delivered</a>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr id="details-<%= order._id %>" class="order-details" style="display:none;">
-                                        <td colspan="7">
-                                            <h4>Order Items</h4>
-                                            <ul>
-                                                <% order.items.forEach(item => { %>
-                                                  <% if (item.productId) { %>
-                                                    <li><%= item.productId.name %> - Quantity: <%= item.quantity %></li>
-                                                  <% } else { %>
-                                                    <li>Product not available - Quantity: <%= item.quantity %></li>
-                                                  <% } %>
-                                                <% }) %>
-                                              </ul>
-                                            <% if (order.address) { %>
-                                                <p><strong>Address:</strong> <%= order.address.housename %>, <%= order.address.street %>, <%= order.address.city %>, <%= order.address.state %>, <%= order.address.country %>, <%= order.address.pincode %></p>
-                                            <% } else { %>
-                                                <p><strong>Address:</strong> Not provided</p>
-                                            <% } %>
-                                            <p><strong>Payment Method:</strong> <%= order.payment %></p>
-                                        </td>
-                                    </tr>
-                                <% }); %>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                          <a
+                            class="dropdown-item"
+                            href="#"
+                            onclick="updateStatus('<%= order._id %>', 'Pending')"
+                            >Pending</a
+                          >
+                          <a
+                            class="dropdown-item"
+                            href="#"
+                            onclick="updateStatus('<%= order._id %>', 'Intransit')"
+                            >In-transit</a
+                          >
+                          <a
+                            class="dropdown-item"
+                            href="#"
+                            onclick="updateStatus('<%= order._id %>', 'Canceled')"
+                            >Canceled</a
+                          >
+                          <a
+                            class="dropdown-item"
+                            href="#"
+                            onclick="updateStatus('<%= order._id %>', 'Shipped')"
+                            >Shipped</a
+                          >
+                          <a
+                            class="dropdown-item"
+                            href="#"
+                            onclick="updateStatus('<%= order._id %>', 'Delivered')"
+                            >Delivered</a
+                          >
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr
+                    id="details-<%= order._id %>"
+                    class="order-details"
+                    style="display: none"
+                  >
+                    <td colspan="7">
+                      <h4>Order Items</h4>
+                      <ul>
+                        <% order.items.forEach(item => { %> <% if
+                        (item.productId) { %>
+                        <li>
+                          <%= item.productId.name %> - Quantity: <%=
+                          item.quantity %>
+                        </li>
+                        <% } else { %>
+                        <li>
+                          Product not available - Quantity: <%= item.quantity %>
+                        </li>
+                        <% } %> <% }) %>
+                      </ul>
+                      <% if (order.address) { %>
+                      <p>
+                        <strong>Address:</strong> <%= order.address.housename
+                        %>, <%= order.address.street %>, <%= order.address.city
+                        %>, <%= order.address.state %>, <%=
+                        order.address.country %>, <%= order.address.pincode %>
+                      </p>
+                      <% } else { %>
+                      <p><strong>Address:</strong> Not provided</p>
+                      <% } %>
+                      <p>
+                        <strong>Payment Method:</strong> <%= order.payment %>
+                      </p>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
             </div>
-            <div id="pagination" class="pagination-area mt-15 mb-50">
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-start">
-                        <% if (currentPage > 1) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= search %>">
-                                    <i class="material-icons md-chevron_left"></i>
-                                </a>
-                            </li>
-                        <% } %>
-            
-                        <% for (let i = 1; i <= totalPages; i++) { %>
-                            <% if (i === currentPage) { %>
-                                <li class="page-item active">
-                                    <a class="page-link" href="#"><%= i %></a>
-                                </li>
-                            <% } else { %>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
-                                </li>
-                            <% } %>
-                        <% } %>
-            
-                        <% if (currentPage < totalPages) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= search %>">
-                                    <i class="material-icons md-chevron_right"></i>
-                                </a>
-                            </li>
-                        <% } %>
-                    </ul>
-                </nav>
-            </div>
-            
-        </section>
+          </div>
+        </div>
+        <div id="pagination" class="pagination-area mt-15 mb-50">
+          <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-start">
+              <% if (currentPage > 1) { %>
+              <li class="page-item">
+                <a
+                  class="page-link"
+                  href="?page=<%= currentPage - 1 %>&search=<%= search %>"
+                >
+                  <i class="material-icons md-chevron_left"></i>
+                </a>
+              </li>
+              <% } %> <% for (let i = 1; i <= totalPages; i++) { %> <% if (i ===
+              currentPage) { %>
+              <li class="page-item active">
+                <a class="page-link" href="#"><%= i %></a>
+              </li>
+              <% } else { %>
+              <li class="page-item">
+                <a class="page-link" href="?page=<%= i %>&search=<%= search %>"
+                  ><%= i %></a
+                >
+              </li>
+              <% } %> <% } %> <% if (currentPage < totalPages) { %>
+              <li class="page-item">
+                <a
+                  class="page-link"
+                  href="?page=<%= currentPage + 1 %>&search=<%= search %>"
+                >
+                  <i class="material-icons md-chevron_right"></i>
+                </a>
+              </li>
+              <% } %>
+            </ul>
+          </nav>
+        </div>
+      </section>
     </main>
+    <div
+      class="modal fade"
+      id="orderDetailsModal"
+      tabindex="-1"
+      aria-labelledby="orderDetailsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="orderDetailsModalLabel">
+              Order Details
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div id="modalOrderDetails">
+              <!-- Order details will be populated here -->
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <%- include('partials/foot.ejs') %>
 
     <script>
-        function toggleDetails(orderId) {
-            const detailsRow = document.getElementById(`details-${orderId}`);
-            if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
-                detailsRow.style.display = 'table-row';
-            } else {
-                detailsRow.style.display = 'none';
-            }
-        }
+      
 
-        function updateStatus(orderId, status) {
-    fetch(`/admin/order/${orderId}/update-status`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: status })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload(); // Reload the page to reflect the status update
-        } else {
-            alert(data.message || 'Failed to update order status');
+      function updateStatus(orderId, status) {
+        fetch(`/admin/order/${orderId}/update-status`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: status }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              alert(data.message);
+              location.reload(); // Reload the page to reflect the status update
+            } else {
+              alert(data.message || "Failed to update order status");
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error updating order status");
+          });
+      }
+
+      function showOrderDetails(orderId) {
+        fetch(`/admin/orders/${orderId}/details`)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              const order = data.order;
+              const modalOrderDetails =
+                document.getElementById("modalOrderDetails");
+              modalOrderDetails.innerHTML = `
+    <div class="card border-0 shadow">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="mb-0 fw-bold">Order #${order.orderId}</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-3">Customer Details</h6>
+                                       <p class="mb-1"><i class="fas fa-user me-2"></i> <strong>${
+                                         order.address.name
+                                       }</strong></p>
+                    <p class="mb-1"><i class="fas fa-envelope me-2"></i> ${
+                      order.address.email
+                    }</p>
+                    <h6 class="text-muted mt-3 mb-2">Shipping Address</h6>
+                    <p class="mb-1"><i class="fas fa-home me-2"></i> ${
+                      order.address.housename
+                    }</p>
+                    <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i> ${
+                      order.address.street
+                    }, ${order.address.city},${order.address.state}, ${
+                order.address.country
+              } - ${order.address.pincode}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h6 class="text-muted mb-3">Order Summary</h6>
+                    <p class="mb-1"><strong>Total Amount:</strong> <span class="fs-5">₹${
+                      order.amount
+                    }</span></p>
+                    <p class="mb-1"><strong>Status:</strong> <span class="badge bg-${getStatusColor(
+                      order.status
+                    )} px-3 py-2">${order.status}</span></p>
+                </div>
+            </div>
+            <h6 class="mb-3 text-primary">Order Items</h6>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Product</th>
+                            <th scope="col" class="text-center">Quantity</th>
+                            <th scope="col" class="text-end">Price</th>
+                            <th scope="col" class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${order.items
+                          .map(
+                            (item) => `
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="${
+                                          item.productId.images[0]
+                                        }" alt="${item.productId.name}" 
+                                             class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                        <div>
+                                            <h6 class="mb-0">${
+                                              item.productId.name
+                                            }</h6>
+                                            <small class="text-muted">${
+                                              item.productId.category || "N/A"
+                                            }</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">${item.quantity}</td>
+                                <td class="text-end">₹${item.price.toFixed(
+                                  2
+                                )}</td>
+                                <td class="text-end">₹${(
+                                  item.quantity * item.price
+                                ).toFixed(2)}</td>
+                            </tr>
+                        `
+                          )
+                          .join("")}
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-bold">
+                            <td colspan="3" class="text-end">Total:</td>
+                            <td class="text-end">₹${order.amount.toFixed(
+                              2
+                            )}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+`;
+
+              const orderDetailsModal = new bootstrap.Modal(
+                document.getElementById("orderDetailsModal")
+              );
+              orderDetailsModal.show();
+            } else {
+              alert("Order details could not be fetched.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching order details:", error);
+          });
+      }
+
+      function getStatusColor(status) {
+        switch (status.toLowerCase()) {
+          case "pending":
+            return "warning";
+          case "shipped":
+            return "info";
+          case "delivered":
+            return "success";
+          case "canceled":
+            return "danger";
+          default:
+            return "secondary";
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error updating order status');
-    });
-}
+      }
     </script>
-</body>
+  </body>
 </html>

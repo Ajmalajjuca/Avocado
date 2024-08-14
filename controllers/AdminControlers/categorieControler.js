@@ -16,6 +16,7 @@ const getCategories = async (req, res) => {
         category: categories,
         catSuccess,
         updateSuccess,
+        activePage: 'categories'
       });
     } else {
       redirect("/admin");
@@ -93,7 +94,7 @@ const postCreateCategory = async (req, res) => {
         if (!category) {
           return res.status(404).send({ error: "User not found" });
         }
-        res.render("admin/editCategory", { category:category, admin: admin.username  });
+        res.render("admin/editCategory", { category:category, admin: admin.username, activePage: 'categories'  });
       } else {
         res.redirect("/admin");
       }

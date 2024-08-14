@@ -23,17 +23,31 @@ const getAllOrders = async (req, res) => {
             { 'userId.username': { $regex: search, $options: 'i' } }
           ]
         })
+        .sort({ createdAt: -1 })
         .skip((currentPage - 1) * itemsPerPage)
         .limit(itemsPerPage)
         .populate('userId', 'username email')
-        .populate('items.productId', 'name');
+        .populate({
+          path: 'items.productId',
+          model: 'Product',
+          name:'name',
+          populate: {
+              path: 'category',
+              model: 'categories',
+              select: 'name'
+          }
+      })
+      .exec();
+
+        
   
         res.render('admin/Orders', {
           orders,
           admin: admin.username,
           currentPage,
           totalPages,
-          search
+          search,
+           activePage: 'orders'
         });
       } else {
         res.redirect("/admin/orders");
@@ -74,4 +88,21 @@ const updatestatus = async (req, res) => {
     }
 };
 
-module.exports={getAllOrders,updateOrderStatus,updatestatus}
+const orderDetails = async (req, res) => {
+  try {
+      const order = await orderModel.findById(req.params.orderId)
+          .populate('userId')
+          .populate('items.productId') 
+          .exec();
+      if (order) {
+          res.json({ success: true, order });
+      } else {
+          res.json({ success: false, message: 'Order not found' });
+      }
+  } catch (error) {
+      console.error('Error fetching order details:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports={getAllOrders,updateOrderStatus,updatestatus,orderDetails}

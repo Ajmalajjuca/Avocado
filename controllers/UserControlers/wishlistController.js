@@ -2,10 +2,12 @@ const Usermodel = require('../../models/userModel');
 const Productmodel = require('../../models/productModel');
 const Wishlistmodel = require('../../models/wishlistModel');
 const productModel = require('../../models/productModel');
+const userModel = require('../../models/userModel');
 
 
  const getWishlist =  async (req, res) => {
     try {
+      const user = await userModel.findById(req.user._id).populate("address");
       const userId = req.user._id;
       let wishlist = await Wishlistmodel.findOne({ userId }).populate('items.productId');
       console.log("Wishlist is >>>>>",wishlist);
@@ -15,7 +17,8 @@ const productModel = require('../../models/productModel');
         await wishlist.save();
       }
 
-      res.render('user/wishlist', { wishlist: wishlist });
+      res.render('user/wishlist', { wishlist: wishlist,      user: user.username,
+      });
     } catch (error) {
       console.error('Error fetching wishlist:', error);
       res.status(500).json({ success: false, message: 'Error fetching wishlist' });
