@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head.ejs') %>
+    <style>
+        .wishlist-section {
+            padding: 60px 0;
+            background-color: #f5f5f5;
+        }
+        .wishlist-table {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .wishlist-table th {
+            background-color: #7fad39;
+            color: #ffffff;
+            text-transform: uppercase;
+            font-weight: 600;
+            padding: 15px;
+        }
+        .wishlist-table td {
+            padding: 20px 15px;
+            vertical-align: middle;
+        }
+        .wishlist-item {
+            display: flex;
+            align-items: center;
+        }
+        .wishlist-item-image {
+            max-width: 80px;
+            max-height: 80px;
+            object-fit: contain;
+            margin-right: 15px;
+        }
+        .wishlist-item h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+        .wishlist-price {
+            font-weight: 600;
+            color: #7fad39;
+        }
+        .wishlist-stock {
+            font-weight: 500;
+        }
+        .wishlist-action .site-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        .wishlist-remove {
+            color: #e74c3c;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .wishlist-remove:hover {
+            color: #c0392b;
+        }
+        .empty-wishlist {
+            text-align: center;
+            padding: 40px 0;
+            font-size: 18px;
+            color: #777;
+        }
+        .continue-shopping {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('partials/header.ejs') %>
+
+    <!-- Hero Section Begin -->
+    <section class="hero hero-normal">
+        <!-- ... (keep existing hero section code) ... -->
+    </section>
+    <!-- Hero Section End -->
+
+    <!-- Breadcrumb Section Begin -->
+    <section class="breadcrumb-section set-bg" data-setbg="user/img/breadcrumb.jpg">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <div class="breadcrumb__text">
+                        <h2>My Wishlist</h2>
+                        <div class="breadcrumb__option">
+                            <a href="/">Home</a>
+                            <span>Wishlist</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+
+    <!-- Wishlist Section Begin -->
+    <section class="wishlist-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="wishlist-table">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Stock Status</th>
+                                    <th>Action</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="wishlist-items">
+                                <% if (wishlist && wishlist.items && wishlist.items.length > 0) { %>
+                                    <% wishlist.items.forEach(item => { %>
+                                    <tr>
+                                        <td>
+                                            <div class="wishlist-item">
+                                                <img src="<%= item.productId.images[0] %>" alt="<%= item.productId.name %>" class="wishlist-item-image">
+                                                <h5><%= item.productId.name %></h5>
+                                            </div>
+                                        </td>
+                                        <td class="wishlist-price">₹ <%= item.price.toFixed(2) %></td>
+                                        <td class="wishlist-stock"><%= item.productId.stock > 0 ? 'In Stock' : 'Out of Stock' %></td>
+                                        <td class="wishlist-action">
+                                            <button onclick="addToCart('<%= item.productId._id %>')" class="site-btn">Add to Cart</button>
+                                        </td>
+                                        <td>
+                                            <i class="fa fa-times wishlist-remove" onclick="removeFromWishlist('<%= item.productId._id %>')"></i>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="5" class="empty-wishlist">Your wishlist is empty</td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="continue-shopping">
+                        <a href="/" class="primary-btn cart-btn">CONTINUE SHOPPING</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Wishlist Section End -->
+
+    <!-- Footer Section Begin -->
+    <%- include('partials/footer.ejs') %>
+    <!-- Footer Section End -->
+
+    <!-- Js Plugins -->
+    <%- include('partials/foot.ejs') %>
+
+    <script>
+    async function removeFromWishlist(productId) {
+    try {
+        console.log('Removing product from wishlist:', productId);
+        const response = await fetch('/wishlist/remove', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId })
+        });
+
+        const data = await response.json();
+        console.log('Server response:', data);
+
+        if (data.success) {
+            updateWishlistDisplay(data.wishlist);
+            showToast('success', 'Product removed from wishlist');
+        } else {
+            throw new Error(data.message || 'Failed to remove product from wishlist');
+        }
+    } catch (error) {
+        console.error('Error removing product from wishlist:', error);
+        showToast('error', `Failed to remove product from wishlist: ${error.message}`);
+    }
+}
+
+async function addToCart(productId) {
+    try {
+        console.log('Adding product to cart:', productId);
+        const response = await fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId, quantity: 1 })
+        });
+
+        const data = await response.json();
+        console.log('Server response:', data);
+
+        if (data.success) {
+            showToast('success', 'Product added to cart successfully!');
+            // Optionally remove from wishlist after adding to cart
+            const response = await fetch('/wishlist/remove', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId })
+        });
+
+        const data = await response.json();
+        console.log('Server response:', data);
+
+        if (data.success) {
+            updateWishlistDisplay(data.wishlist);
+            showToast('success', 'Product added to cart');
+        } else {
+            throw new Error(data.message || 'Failed to remove product from wishlist');
+        }
+        } else {
+            throw new Error(data.message || 'Failed to add product to cart');
+        }
+    } catch (error) {
+        console.error('Error adding product to cart:', error);
+        showToast('error', ` ${error.message}`);
+    }
+}
+
+
+function updateWishlistDisplay(wishlistData) {
+    const wishlistItemsContainer = document.getElementById('wishlist-items');
+    wishlistItemsContainer.innerHTML = '';
+
+    if (wishlistData && wishlistData.length > 0) {
+        wishlistData.forEach(item => {
+            const itemElement = document.createElement('tr');
+            itemElement.innerHTML = `
+                <td>
+                    <div class="wishlist-item">
+                        <img src="${item.productId.images[0]}" alt="${item.productId.name}" class="wishlist-item-image">
+                        <h5>${item.productId.name}</h5>
+                    </div>
+                </td>
+                <td class="wishlist-price">₹ ${item.price.toFixed(2)}</td>
+                <td class="wishlist-stock">${item.productId.stock > 0 ? 'In Stock' : 'Out of Stock'}</td>
+                <td class="wishlist-action">
+                    <button onclick="addToCart('${item.productId._id}')" class="site-btn">Add to Cart</button>
+                </td>
+                <td>
+                    <i class="fa fa-times wishlist-remove" onclick="removeFromWishlist('${item.productId._id}')"></i>
+                </td>
+            `;
+            wishlistItemsContainer.appendChild(itemElement);
+        });
+    } else {
+        wishlistItemsContainer.innerHTML = '<tr><td colspan="5" class="empty-wishlist">Your wishlist is empty</td></tr>';
+    }
+}
+
+function showToast(icon, title) {
+    let backgroundColor;
+    let textColor = '#ffffff';  // White text for all toasts
+
+    switch(icon) {
+        case 'success':
+            backgroundColor = '#28a745';  // Green
+            break;
+        case 'error':
+            backgroundColor = '#dc3545';  // Red
+            break;
+        case 'warning':
+            backgroundColor = '#ffc107';  // Yellow
+            textColor = '#000000';  // Black text for better contrast on yellow
+            break;
+        case 'info':
+            backgroundColor = '#17a2b8';  // Blue
+            break;
+        default:
+            backgroundColor = '#6c757d';  // Gray (default)
+    }
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        },
+        customClass: {
+            popup: 'colored-toast'
+        }
+    })
+
+    Toast.fire({
+        icon: icon,
+        title: title,
+        background: backgroundColor,
+        color: textColor
+    })
+}
+    </script>
+</body>
+
+</html>
