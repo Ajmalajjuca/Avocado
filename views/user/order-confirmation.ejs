@@ -119,8 +119,18 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="3">Total</td>
-                <td>₹<%= total.toFixed(2) %></td>
+                <td colspan="3">Subtotal</td>
+                <td>₹<%= subtotal.toFixed(2) %></td>
+              </tr>
+              <% if (totalSavings > 0) { %>
+                <tr class="savings">
+                  <td colspan="3">Total Savings (Offers + Coupon)</td>
+                  <td>-₹<%= totalSavings.toFixed(2) %></td>
+                </tr>
+              <% } %>
+              <tr class="final-total">
+                <td colspan="3"><strong>Final Total</strong></td>
+                <td><strong>₹<%= finalTotal.toFixed(2) %></strong></td>
               </tr>
             </tfoot>
           </table>

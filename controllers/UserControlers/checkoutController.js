@@ -4,6 +4,7 @@ const userModel = require("../../models/userModel");
 const addressModel = require("../../models/addressModel");
 const orderModel = require("../../models/orderModel");
 const productModel = require("../../models/productModel");
+const transactionModel = require('../../models/transactionModel')
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
 
@@ -25,6 +26,7 @@ const getcheckout = async (req, res) => {
       user: user.username,
       cart: req.cart,
       addresses,
+      userbalance: user.balance
     });
   } catch (error) {
     console.error("Error fetching user addresses:", error);
@@ -34,7 +36,8 @@ const getcheckout = async (req, res) => {
 
 const placeOrder = async (req, res) => {
   try {
-    const { addressId, paymentMethod } = req.body;
+    const { addressId, paymentMethod,totalSavings } = req.body;
+    
     const cart = req.cart;
 
     let shippingAddress;
@@ -100,23 +103,42 @@ const placeOrder = async (req, res) => {
       price: item.price,
     }));
 
-    // Create a new order with status "Pending"
-    const order = new orderModel({
-      userId: req.user._id,
-      items: orderItems,
-      address: shippingAddress,
-      amount: cart.Cart_total,
-      payment: paymentMethod,
-      createdAt: new Date(),
-      updated: new Date(),
-      status: "Pending",
-      paymentstatus: "Pending",
-    });
+       // Create a new order with status "Pending"
+       const order = new orderModel({
+        userId: req.user._id,
+        items: orderItems,
+        address: shippingAddress,
+        amount: cart.Cart_total,
+        payment: paymentMethod,
+        createdAt: new Date(),
+        updated: new Date(),
+        status: "Pending" ,
+        paymentstatus: "Pending",
+        totalSavings: parseFloat(totalSavings),
+      }); 
 
-    await order.save();
+    // Check if payment method is wallet
+    if (paymentMethod === "wallet") {
+      if (user.balance < cart.Cart_total) {
+        return res.status(400).json({ success: false, message: "Insufficient Wallet Balance" });
+      }
+      // Deduct the amount from the wallet
+      user.balance -= cart.Cart_total;
+      await user.save();
 
-    // Handle payment method
-    if (paymentMethod === "card") {
+      const transaction = new transactionModel({
+        userId: req.user._id,
+        amount: cart.Cart_total,
+        type: "debit",
+        description: "Wallet payment for Order ",
+        date: new Date(),
+        balance: user.balance, // Use the updated balance
+      });
+      await transaction.save();
+
+      order.paymentstatus = "Confirmed";
+
+    }else if (paymentMethod === "card") {
       const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
 
       if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
@@ -140,8 +162,6 @@ const placeOrder = async (req, res) => {
       order.paymentstatus = "Confirmed";
       order.razorpay_order_id = razorpay_order_id;
       order.razorpay_payment_id = razorpay_payment_id;
-    } else if (paymentMethod === "cod") {
-      order.status = "Pending";
     }
 
     await order.save();
@@ -156,6 +176,7 @@ const placeOrder = async (req, res) => {
     // Clear the user's cart
     cart.items = [];
     cart.Cart_total = 0;
+    cart.discount = 0
     await cart.save();
 
     res.redirect("/order-confirmation/" + order._id);
@@ -165,18 +186,33 @@ const placeOrder = async (req, res) => {
   }
 };
 
+
 const getOrderConfirmation = async (req, res) => {
   try {
     const user = await userModel.findById(req.user._id).populate("address");
     const order = await orderModel
       .findById(req.params.orderId)
       .populate("items.productId");
+
     if (!order) {
       return res.status(404).send("Order not found");
     }
-    const total = order.items.reduce((sum, item) => sum + item.price, 0);
-    order.total = total;
-    res.render("user/order-confirmation", { order,user: user.username,
+
+    // Calculate subtotal
+    const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // Calculate total savings (including product discounts and coupon)
+    const totalSavings = order.totalSavings || 0;
+
+    // Calculate final total
+    const finalTotal = subtotal - totalSavings;
+
+    res.render("user/order-confirmation", { 
+      order,
+      user: user.username,
+      subtotal,
+      totalSavings,
+      finalTotal
     });
   } catch (error) {
     console.error("Error fetching order:", error);
@@ -184,78 +220,78 @@ const getOrderConfirmation = async (req, res) => {
   }
 };
 
-const UpdateOrderStatus = async (req, res) => {
-  try {
-    const { orderId, newStatus } = req.body;
-    const order = await orderModel.findById(orderId);
+// const UpdateOrderStatus = async (req, res) => {
+//   try {
+//     const { orderId, newStatus } = req.body;
+//     const order = await orderModel.findById(orderId);
 
-    if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
-    }
+//     if (!order) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Order not found" });
+//     }
 
-    const allowedStatusChanges = {
-      pending: ["Canceled"],
-      "in-transit": ["Canceled"],
-      shipped: ["Canceled"],
-      delivered: ["Returned"],
-    };
+//     const allowedStatusChanges = {
+//       pending: ["Canceled"],
+//       "in-transit": ["Canceled"],
+//       shipped: ["Canceled"],
+//       delivered: ["Returned"],
+//     };
 
-    if (
-      !allowedStatusChanges[order.status.toLowerCase()]?.includes(newStatus)
-    ) {
-      return res
-        .status(400)
-        .json({ success: false, message: "This status change is not allowed" });
-    }
+//     if (
+//       !allowedStatusChanges[order.status.toLowerCase()]?.includes(newStatus)
+//     ) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "This status change is not allowed" });
+//     }
 
-    order.status = newStatus;
-    await order.save();
+//     order.status = newStatus;
+//     await order.save();
 
-    res.json({ success: true, message: "Order status updated successfully" });
-  } catch (error) {
-    console.error("Error updating order status:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "An error occurred while updating the order status",
-      });
-  }
-};
+//     res.json({ success: true, message: "Order status updated successfully" });
+//   } catch (error) {
+//     console.error("Error updating order status:", error);
+//     res
+//       .status(500)
+//       .json({
+//         success: false,
+//         message: "An error occurred while updating the order status",
+//       });
+//   }
+// };
 
-const CancelOrder = async (req, res) => {
-  try {
-    const { orderId } = req.body;
-    const order = await orderModel.findById(orderId);
+// const CancelOrder = async (req, res) => {
+//   try {
+//     const { orderId } = req.body;
+//     const order = await orderModel.findById(orderId);
 
-    if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
-    }
+//     if (!order) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Order not found" });
+//     }
 
-    if (order.status.toLowerCase() !== "pending") {
-      return res
-        .status(400)
-        .json({ success: false, message: "This order cannot be cancelled" });
-    }
+//     if (order.status.toLowerCase() !== "pending") {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "This order cannot be cancelled" });
+//     }
 
-    order.status = "Canceled";
-    await order.save();
+//     order.status = "Canceled";
+//     await order.save();
 
-    res.json({ success: true, message: "Order cancelled successfully" });
-  } catch (error) {
-    console.error("Error cancelling order:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "An error occurred while cancelling the order",
-      });
-  }
-};
+//     res.json({ success: true, message: "Order cancelled successfully" });
+//   } catch (error) {
+//     console.error("Error cancelling order:", error);
+//     res
+//       .status(500)
+//       .json({
+//         success: false,
+//         message: "An error occurred while cancelling the order",
+//       });
+//   }
+// };
 
 const verifyRazorpayPayment = (
   razorpay_order_id,
@@ -294,11 +330,14 @@ const createRazorpayOrder = async (req, res) => {
   }
 };
 
+
+
+
 module.exports = {
   getcheckout,
   placeOrder,
   getOrderConfirmation,
-  UpdateOrderStatus,
-  CancelOrder,
+  // UpdateOrderStatus,
+  // CancelOrder,
   createRazorpayOrder,
 };

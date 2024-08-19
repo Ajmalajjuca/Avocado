@@ -6,6 +6,7 @@ const categorieController = require("../controllers/AdminControlers/categorieCon
 const userController = require("../controllers/AdminControlers/showuserControler")
 const orderControler = require('../controllers/AdminControlers/orderControler')
 const couponControler = require('../controllers/AdminControlers/couponControler') 
+const offerController = require('../controllers/AdminControlers/offerController')
 const multer = require('multer');
 const path = require('path');
 
@@ -42,6 +43,9 @@ router.get("/", adminControl.getLogin);
 router.post("/login", adminControl.postLogin);
 router.get("/dashboard", adminControl.getDashboard);
 router.get("/admin/logout",adminControl.getLogout)
+router.post('/generate-report',adminControl.generateReport) 
+router.get('/report',adminControl.report);
+router.get('/download-report',adminControl.downloadReport);
 
 // router.get("/orders", adminControl.getOrders);
 
@@ -92,6 +96,14 @@ router.post('/createCoupon',couponControler.postCreateCoupon)
 router.get('/editCoupon/:id',couponControler.getEditCoupon)
 router.post('/updateCoupon/:id',couponControler.updateCoupon)
 router.patch('/coupons/:id/toggleStatus',couponControler.updatestatus)
+
+
+//offres
+router.get('/offer', offerController.getAllOffers);
+router.get('/offers/:id', offerController.getOfferById);
+router.post('/createOffer', offerController.createOffer);
+router.post('/updateOffer/:id', offerController.updateOffer);
+router.delete('/offers/:id', offerController.deleteOffer);
 
 
 

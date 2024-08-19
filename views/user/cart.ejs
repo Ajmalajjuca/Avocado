@@ -131,24 +131,24 @@
                 </div>
                 <div class="col-lg-6">
                     <div class="shoping__continue">
-                      <div class="shoping__discount">
-                        <h5>Discount Codes</h5>
-                        <form id="coupon-form">
-                            <input type="text" id="coupon-code" placeholder="Enter your coupon code">
-                            <button type="button" class="site-btn" onclick="applyCoupon()">APPLY COUPON</button>
-                        </form>
-                    </div>
+                        <div class="shoping__discount">
+                            <h5>Discount Codes</h5>
+                            <form id="coupon-form">
+                              <input type="text" id="coupon-code" placeholder="Enter your coupon code">
+                              <button type="button" class="site-btn" onclick="applyCoupon()">APPLY COUPON</button>
+                            </form>
+                          </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                   <div class="shoping__checkout">
                     <h5>Cart Total</h5>
                     <ul>
-                        <li>Subtotal <span>₹ <%= (cart && cart.Cart_total ? cart.Cart_total.toFixed(2) : '0.00') %></span></li>
+                        <li>Subtotal <span>₹ <%= (cart.originalSubtotal || cart.Cart_total + (cart.discount || 0)).toFixed(2) %></span></li>
                         <% if (cart && cart.discount) { %>
                         <li>Discount <span>₹ -<%= cart.discount.toFixed(2) %></span></li>
                         <% } %>
-                        <li>Total <span>₹ <%= (cart && cart.Cart_total ? (cart.Cart_total - (cart.discount || 0)).toFixed(2) : '0.00') %></span></li>
+                        <li>Total <span>₹ <%= cart.Cart_total.toFixed(2) %></span></li>
                     </ul>
                     <a href="/checkout" class="primary-btn">PROCEED TO CHECKOUT</a>
                 </div>
@@ -222,8 +222,8 @@ async function updateQuantity(productId, quantity) {
 
 
 function updateCartDisplay(cartData) {
-  const cartItemsContainer = document.getElementById('cart-items');
-  cartItemsContainer.innerHTML = '';
+    const cartItemsContainer = document.getElementById('cart-items');
+    cartItemsContainer.innerHTML = '';
 
   if (cartData.items && cartData.items.length > 0) {
     cartData.items.forEach(item => {
@@ -256,64 +256,79 @@ function updateCartDisplay(cartData) {
     cartItemsContainer.innerHTML = '<tr><td colspan="5">Your cart is empty</td></tr>';
   }
 
-  // Update subtotal
-  const subtotalElement = document.querySelector('.shoping__checkout ul li:nth-child(1) span');
-  if (subtotalElement) {
-    subtotalElement.textContent = `₹ ${cartData.Cart_total.toFixed(2)}`;
-  }
 
-  // Update discount
-  const discountElement = document.querySelector('.shoping__checkout ul li:nth-child(2) span');
-  if (discountElement && cartData.discount) {
-    discountElement.textContent = `₹ -${cartData.discount.toFixed(2)}`;
-  } else if (discountElement) {
-    discountElement.textContent = '₹ 0.00';
-  }
+    // Use the original subtotal if available, otherwise calculate it
+    const subtotal = cartData.originalSubtotal || cartData.Cart_total + (cartData.discount || 0);
 
-  // Update total
-  const totalElement = document.querySelector('.shoping__checkout ul li:nth-child(3) span');
-  if (totalElement) {
-    const finalTotal = cartData.Cart_total - (cartData.discount || 0);
-    totalElement.textContent = `₹ ${finalTotal.toFixed(2)}`;
-  }
+    // Update subtotal
+    const subtotalElement = document.querySelector('.shoping__checkout ul li:nth-child(1) span');
+    if (subtotalElement) {
+        subtotalElement.textContent = `₹ ${subtotal.toFixed(2)}`;
+    }
+
+    // Update discount
+    const discountElement = document.querySelector('.shoping__checkout ul li:nth-child(2)');
+    if (discountElement) {
+        if (cartData.discount && cartData.discount > 0) {
+            discountElement.innerHTML = `Discount <span>₹ -${cartData.discount.toFixed(2)}</span>`;
+            discountElement.style.display = 'list-item';
+        } else {
+            discountElement.style.display = 'none';
+        }
+    }
+
+    // Update total
+    const totalElement = document.querySelector('.shoping__checkout ul li:last-child span');
+    if (totalElement) {
+        totalElement.textContent = `₹ ${cartData.Cart_total.toFixed(2)}`;
+    }
 }
 
+// Update total
+const totalElement = document.querySelector('.shoping__checkout ul li:last-child span');
+if (totalElement) {
+    totalElement.textContent = `₹ ${cartData.Cart_total.toFixed(2)}`;
+}
+
+// Force a re-render of the cart summary
+const cartSummary = document.querySelector('.shoping__checkout');
+if (cartSummary) {
+    cartSummary.style.display = 'none';
+    setTimeout(() => {
+        cartSummary.style.display = 'block';
+    }, 0);
+}
+
+
+
 async function applyCoupon() {
-    const couponCode = document.getElementById('coupon-code').value;
+  const couponCode = document.getElementById('coupon-code').value;
+  if (!couponCode) {
+    showToast('error', 'Please enter a coupon code');
+    return;
+  }
 
-    if (!couponCode) {
-        showToast('warning', 'Please enter a coupon code');
-        return;
+  try {
+    const response = await fetch('/cart/apply-coupon', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ couponCode })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      updateCartDisplay(data.cart);
+      showToast('success', 'Coupon applied successfully');
+    } else {
+      throw new Error(data.message || 'Failed to apply coupon');
     }
-
-    try {
-        const response = await fetch('/cart/apply-coupon', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ couponCode })
-        });
-
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        console.log('Server response:', data);
-
-        if (data.success) {
-            console.log('Cart after coupon:', data.cart);
-            updateCartDisplay(data.cart);
-            showToast('success', 'Coupon applied successfully!');
-        } else {
-            console.warn('Failed to apply coupon:', data.message);
-            showToast('error', `Failed to apply coupon: ${data.message}`);
-        }
-    } catch (error) {
-        console.error('Error applying coupon:', error);
-        showToast('error', 'Failed to apply coupon');
-    }
+  } catch (error) {
+    console.error('Error applying coupon:', error);
+    showToast('error', `Failed to apply coupon: ${error.message}`);
+  }
 }
 
 function showToast(icon, title) {

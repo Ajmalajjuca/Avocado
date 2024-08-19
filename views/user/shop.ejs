@@ -2,6 +2,179 @@
 <html lang="en">
   <head>
     <%- include('partials/head'); %>
+    <style>
+      .product__item {
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+    
+      .product__item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+    
+      .product__item__pic {
+        position: relative;
+        height: 270px;
+        overflow: hidden;
+      }
+    
+      .product__item__pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+    
+      .product__item:hover .product__item__pic img {
+        transform: scale(1.05);
+      }
+    
+      .product__item__pic__hover {
+        position: absolute;
+        left: 0;
+        bottom: -50px;
+        width: 100%;
+        text-align: center;
+        transition: all 0.5s;
+        opacity: 0;
+      }
+    
+      .product__item:hover .product__item__pic__hover {
+        bottom: 20px;
+        opacity: 1;
+      }
+    
+      .product__item__pic__hover li {
+        list-style: none;
+        display: inline-block;
+        margin-right: 6px;
+      }
+    
+      .product__item__pic__hover li:last-child {
+        margin-right: 0;
+      }
+    
+      .product__item__pic__hover li a {
+        font-size: 16px;
+        color: #1c1c1c;
+        height: 40px;
+        width: 40px;
+        line-height: 40px;
+        text-align: center;
+        border: 1px solid #ebebeb;
+        background: #ffffff;
+        display: block;
+        border-radius: 50%;
+        transition: all 0.3s;
+      }
+    
+      .product__item__pic__hover li a:hover {
+        background: #7fad39;
+        border-color: #7fad39;
+        color: #ffffff;
+      }
+    
+      .product__item__text {
+        padding: 15px;
+        text-align: center;
+      }
+    
+      .product__item__text h6 a {
+        font-size: 16px;
+        color: #252525;
+        font-weight: 400;
+        transition: all 0.3s;
+      }
+    
+      .product__item__text h6 a:hover {
+        color: #7fad39;
+      }
+    
+      .product__item__text h5 {
+        color: #252525;
+        font-weight: 700;
+        margin-top: 10px;
+      }
+    
+      .filter__item {
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+      }
+    
+      .filter__toggle {
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+      }
+    
+      .filter__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+    
+      .filter__category {
+        margin-bottom: 15px;
+      }
+    
+      .filter__category h4 {
+        margin-bottom: 10px;
+        font-size: 16px;
+        color: #333;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 5px;
+      }
+    
+      .filter__list {
+        list-style-type: none;
+        padding: 0;
+      }
+    
+      .filter__list li {
+        margin-bottom: 5px;
+      }
+    
+      .filter__list li a {
+        color: #666;
+        text-decoration: none;
+        transition: color 0.3s;
+      }
+    
+      .filter__list li a:hover {
+        color: #7fad39;
+      }
+    
+      .filter__options {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+        opacity: 0;
+      }
+    
+      .filter__options.active {
+        max-height: 1000px;
+        opacity: 1;
+      }
+    
+      .filter__toggle i.fa-chevron-up {
+        transform: rotate(180deg);
+        transition: transform 0.3s ease;
+      }
+    
+      .filter__list li a.active {
+        font-weight: bold;
+        color: #7fad39;
+      }
+    </style>
   </head>
   <body>
     <!-- Header Section Begin -->
@@ -178,52 +351,118 @@
                 </div>
               </div>
             </div>
+
             <div class="filter__item">
-              <div class="row">
-                <div class="col-lg-4 col-md-5">
-                  <div class="filter__sort">
-                    <span>Sort By</span>
-                    <select>
-                      <option value="0">Default</option>
-                      <option value="0">Default</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="col-lg-4 col-md-4">
-                  <div class="filter__found">
-                    <h6><span>16</span> Products found</h6>
-                  </div>
-                </div>
-                <div class="col-lg-4 col-md-3">
-                  <div class="filter__option">
-                    <span class="icon_grid-2x2"></span>
-                    <span class="icon_ul"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
+  <div class="filter__toggle">
+    <span>FILTER PRODUCT</span>
+    <i class="fa fa-chevron-down"></i>
+  </div>
+  <div class="filter__options">
+    <div class="filter__grid">
+      <div class="filter__category">
+        <h4>CATEGORIES</h4>
+        <ul class="filter__list">
+          <li><a href="/shop" class="<%= !currentFilters.category ? 'active' : '' %>">All</a></li>
+          <% categories.forEach(category => { %>
+            <li>
+              <a href="/shop?category=<%= category._id %>" 
+                 class="<%= currentFilters.category === category._id.toString() ? 'active' : '' %>">
+                <%= category.name %>
+              </a>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+      <div class="filter__category">
+        <h4>SORT BY</h4>
+        <ul class="filter__list">
+          <li><a href="/shop" class="<%= !currentFilters.sort ? 'active' : '' %>">Default</a></li>
+          <li>
+            <a href="/shop?sort=priceLowToHigh" 
+               class="<%= currentFilters.sort === 'priceLowToHigh' ? 'active' : '' %>">
+              Price: Low to High
+            </a>
+          </li>
+          <li>
+            <a href="/shop?sort=priceHighToLow" 
+               class="<%= currentFilters.sort === 'priceHighToLow' ? 'active' : '' %>">
+              Price: High to Low
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="filter__category">
+        <h4>FILTER BY</h4>
+        <ul class="filter__list">
+          <li><a href="/shop" class="<%= Object.keys(currentFilters).length === 0 ? 'active' : '' %>">All</a></li>
+          <li>
+            <a href="/shop?new=true" 
+               class="<%= currentFilters.new === 'true' ? 'active' : '' %>">
+              New
+            </a>
+          </li>
+          <li>
+            <a href="/shop?sale=true" 
+               class="<%= currentFilters.sale === 'true' ? 'active' : '' %>">
+              Sale Off
+            </a>
+          </li>
+          <li>
+            <a href="/shop?stock=inStock" 
+               class="<%= currentFilters.stock === 'inStock' ? 'active' : '' %>">
+              In Stock Only
+            </a>
+          </li>
+          <li>
+            <a href="/shop?stock=outOfStock" 
+               class="<%= currentFilters.stock === 'outOfStock' ? 'active' : '' %>">
+              Out of Stock
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
             <div class="row">
-              <% products.forEach(product => { %>
-                <div class="col-lg-4 col-md-6 col-sm-6">
-                    <div class="product__item">
-                        <div class="product__item__pic set-bg">
-                            <img src="<%= product.images[0] %>" alt="<%= product.name %>"> <!-- Display only the first image -->
-            
-                            <ul class="product__item__pic__hover">
-                                <li>                    <a href="#" onclick="addToWishlist('<%= product._id %>')"><i class="fa fa-heart"></i></a>
-                                </li>
-                                  
-                                <li><a href="javascript:void(0);" onclick="addToCart('<%= product._id %>',)"><i class="fa fa-shopping-cart"></i></a></li>                      </ul>
-                              </ul>
-                        </div>
-                        <div class="product__item__text">
-                            <h6><a href="/product/<%= product._id %>"><%= product.name %></a></h6>
-                            <h5>₹ <%= product.price.toFixed(2) %></h5>
-                        </div>
-                    </div>
-                </div>
-            <% }); %>
-          </div>
+  <% [...offerProducts, ...normalProducts].forEach(product => { %>
+    <div class="col-lg-4 col-md-6 col-sm-6 mix
+      category-<%= product.category && product.category._id ? product.category._id : '' %> 
+      <%= product.isInStock ? 'in-stock' : 'out-of-stock' %> 
+      <%= product.isNew ? 'new-product' : '' %>
+      <%= product.offer ? 'sale-off' : '' %>"
+      data-price="<%= product.price %>"
+      data-category="<%= product.category && product.category._id ? product.category._id : '' %>"
+      data-stock="<%= product.isInStock ? 'in-stock' : 'out-of-stock' %>"
+      data-new="<%= product.isNew ? 'new' : '' %>"
+      data-sale="<%= product.offer ? 'sale-off' : '' %>">
+      <div class="product__item">
+        <div class="product__item__pic set-bg" data-setbg="<%= product.images && product.images.length > 0 ? product.images[0] : '' %>">
+          <% if (product.offer) { %>
+            <div class="product__discount__percent">-<%= product.offer.discount %>%</div>
+          <% } %>
+          <ul class="product__item__pic__hover">
+            <li><a href="#" class="add-to-cart" data-product-id="<%= product._id %>"><i class="fa fa-shopping-cart"></i></a></li>
+            <li><a href="#" class="add-to-wishlist" data-product-id="<%= product._id %>"><i class="fa fa-heart"></i></a></li>
+          </ul>
+        </div>
+        <div class="product__item__text">
+          <h6><a href="/product/<%= product._id || '' %>"><%= product.name || 'Product Name' %></a></h6>
+          <% if (product.offerPrice) { %>
+            <div class="product__item__price">
+              ₹<%= typeof product.offerPrice === 'number' ? product.offerPrice.toFixed(2) : product.offerPrice %>
+              <span>₹<%= typeof product.price === 'number' ? product.price.toFixed(2) : product.price %></span>
+            </div>
+          <% } else { %>
+            <h5>₹<%= typeof product.price === 'number' ? product.price.toFixed(2) : product.price %></h5>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  <% }); %>
+</div>
             <div class="product__pagination">
               <a href="#">1</a>
               <a href="#">2</a>
@@ -241,43 +480,196 @@
     <!-- Footer Section End -->
 
     <%- include('partials/foot') %>
+    <script src="https://cdn.jsdelivr.net/npm/mixitup@3.3.1/dist/mixitup.min.js"></script>
     <script>
-      async function addToCart(productId, size) {
-  try {
-    const response = await fetch('/cart/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ productId, quantity: 1, size })
-    });
+      document.addEventListener('DOMContentLoaded', function() {
+        var containerEl = document.querySelector('.row');
+        var mixer;
     
-    if (response.status === 401) {
-      window.location.href = '/login';
-      return;
-    }
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+        if (containerEl) {
+          mixer = mixitup(containerEl, {
+            selectors: {
+              target: '.mix'
+            },
+            animation: {
+              duration: 300
+            }
+          });
+        } else {
+          console.error('Product container element not found');
+        }
     
-    const data = await response.json();
-    updateCartCount(data.cartItemCount);
-    alert('Product added to cart');
-  } catch (error) {
-    console.error('Error adding product to cart:', error);
-    alert('Failed to add product to cart');
-  }
+        // Filtering functionality
+        document.querySelectorAll('.filter__list a[data-filter]').forEach(el => {
+          el.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.filter__list a').forEach(link => link.classList.remove('active'));
+            this.classList.add('active');
+            let filterValue = this.getAttribute('data-filter');
+            if (filterValue === '*') {
+              mixer.filter('all');
+            } else {
+              mixer.filter(filterValue);
+            }
+          });
+        });
+    
+        // Sorting functionality
+        document.querySelectorAll('[data-sort]').forEach(el => {
+          el.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('[data-sort]').forEach(link => link.classList.remove('active'));
+            this.classList.add('active');
+            let sortValue = this.getAttribute('data-sort');
+            if (sortValue === 'price-asc') {
+              mixer.sort('price:asc');
+            } else if (sortValue === 'price-desc') {
+              mixer.sort('price:desc');
+            } else {
+              mixer.sort('default');
+            }
+          });
+        });
+    
+        // Filter toggle functionality
+        const filterToggle = document.querySelector('.filter__toggle');
+        const filterOptions = document.querySelector('.filter__options');
+    
+        if (filterToggle && filterOptions) {
+          filterToggle.addEventListener('click', function() {
+            filterOptions.classList.toggle('active');
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+          });
+        }
+    
+        // Add to cart functionality
+        function addToCart(productId) {
+          console.log('Adding to cart:', productId);
+          fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId, quantity: 1 })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Cart response data:', data);
+            if (data.success) {
+              updateCartCount(data.cartItemCount);
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Product added to cart',
+                showConfirmButton: false,
+                timer: 1500
+              });
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Failed to add product to cart',
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Error adding to cart:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'Failed to add product to cart',
+            });
+          });
+        }
+    
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = this.getAttribute('data-product-id');
+            addToCart(productId);
+          });
+        });
+    
+        // Update cart count
+        function updateCartCount(count) {
+          const cartCountElement = document.getElementById('cart-count');
+          if (cartCountElement) {
+            cartCountElement.textContent = count;
+          }
+        }
+    
+        // Add to wishlist functionality
+        function addToWishlist(productId) {
+          console.log('Adding to wishlist:', productId);
+          fetch('/wishlist/add', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Wishlist response data:', data);
+            if (data.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Product added to wishlist',
+              });
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Failed to add product to wishlist',
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Error adding to wishlist:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'Failed to add product to wishlist',
+            });
+          });
+        }
+    
+        document.querySelectorAll('.add-to-wishlist').forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = this.getAttribute('data-product-id');
+            addToWishlist(productId);
+          });
+        });
+      });
 
+
+      document.addEventListener('DOMContentLoaded', function() {
+  const filterLinks = document.querySelectorAll('.filter__list a');
   
-}
-
-function updateCartCount(count) {
-  const cartCountElement = document.getElementById('cart-count');
-  if (cartCountElement) {
-    cartCountElement.textContent = count;
-  }
-}
- </script>
+  filterLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const currentUrl = new URL(window.location.href);
+      const newUrl = new URL(this.href);
+      
+      // Preserve existing query parameters
+      for (let [key, value] of currentUrl.searchParams.entries()) {
+        if (!newUrl.searchParams.has(key)) {
+          newUrl.searchParams.set(key, value);
+        }
+      }
+      
+      window.location.href = newUrl.toString();
+    });
+  });
+});
+    </script>
   </body>
 </html>
+
+

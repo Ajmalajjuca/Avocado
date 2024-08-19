@@ -35,15 +35,9 @@
                       required
                     />
                   </div>
+                  
                   <div class="mb-4">
-                    <label for="type" class="form-label">Discount Type</label>
-                    <select class="form-control" name="type" id="type" required>
-                      <option value="percentage">Percentage</option>
-                      <option value="fixed_amount">Fixed Amount</option>
-                    </select>
-                  </div>
-                  <div class="mb-4">
-                    <label for="discount" class="form-label">Discount</label>
+                    <label for="discount" class="form-label">Discount (%)</label>
                     <input
                       type="number"
                       placeholder="Enter discount value"
@@ -121,7 +115,7 @@
                               <td><%= coupon.maxRedeem %></td>
                               <td><%= new Date(coupon.expiry).toLocaleDateString() %></td>
                               <td>
-                                <span class="badge rounded-pill <%= coupon.status ? 'alert-success' : 'alert-danger' %>">
+                                <span class="badge rounded-pill status-indicator <%= coupon.status ? 'alert-success' : 'alert-danger' %>">
                                   <%= coupon.status ? 'Active' : 'Inactive' %>
                                 </span>
                               </td>
@@ -129,9 +123,10 @@
                                 <a href="/admin/editCoupon/<%= coupon._id %>" class="btn btn-sm btn-brand rounded font-sm mt-15">
                                   Edit
                                 </a>
-                                  <a href="#" class="btn btn-sm btn-brand rounded font-sm mt-15 toggle-status-btn" data-coupon-id="<%= coupon._id %>">
-                                    <%= coupon.status ? 'Deactivate' : 'Activate' %>
-                                  </a>
+                                <a href="#" class="btn btn-sm btn-brand rounded font-sm mt-15 toggle-status-btn" data-coupon-id="<%= coupon._id %>">
+                                  <%= coupon.status ? 'Deactivate' : 'Activate' %>
+                                </a>
+                                
                               </td>
                             </tr>
                           <% } else { %>
@@ -171,203 +166,90 @@
     <%- include('partials/foot.ejs') %>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Bootstrap modal
-        const editCouponModal = new bootstrap.Modal(document.getElementById('editCouponModal'));
-      
-        // Event delegation for edit and toggle status buttons
-        document.addEventListener('click', function(e) {
-          const editButton = e.target.closest('.edit-coupon-btn');
-          const toggleButton = e.target.closest('.toggle-status-btn');
-          
-          if (editButton) {
-            e.preventDefault();
-            const couponId = editButton.dataset.couponId;
-            editCoupon(couponId);
-          } else if (toggleButton) {
-            e.preventDefault();
-            const couponId = toggleButton.dataset.couponId;
-            toggleCouponStatus(couponId);
-          }
-        });
-      
         // Event listener for create coupon form
-        document.getElementById("createCouponForm").addEventListener("submit", function (event) {
+        const createCouponForm = document.getElementById("createCouponForm");
+        createCouponForm.addEventListener("submit", function (event) {
           event.preventDefault();
           createCoupon();
         });
       
-        // Event listener for edit coupon form
-        document.getElementById("editCouponForm").addEventListener("submit", function (event) {
-          event.preventDefault();
-          updateCoupon();
-        });
-      
-        function editCoupon(couponId) {
-          fetch(`/admin/getCoupon/${couponId}`)
-            .then(response => response.json())
-            .then(data => {
-              document.getElementById("couponId").value = data._id;
-              document.getElementById("editCouponCode").value = data.couponCode;
-              document.getElementById("editType").value = data.type;
-              document.getElementById("editDiscount").value = data.discount;
-              document.getElementById("editMinimumPrice").value = data.minimumPrice;
-              document.getElementById("editMaxRedeem").value = data.maxRedeem;
-              document.getElementById("editExpiry").value = data.expiry.split('T')[0];
-      
-              // Show the modal
-              editCouponModal.show();
-            })
-            .catch(error => {
-              console.error('Error fetching coupon:', error);
-              Swal.fire("Error!", "Failed to load coupon data.", "error");
-            });
-        }
+        // Event delegation for toggle status buttons
+        document.addEventListener('click', function(e) {
+  const toggleButton = e.target.closest('.toggle-status-btn');
+  if (toggleButton) {
+    e.preventDefault();
+    const couponId = toggleButton.dataset.couponId;
+    toggleCouponStatus(couponId, toggleButton);
+  }
+});
       
         function createCoupon() {
-          const couponCode = document.getElementById("couponCode").value.trim();
-          const discount = document.getElementById("discount").value;
-          const minimumPrice = document.getElementById("minimumPrice").value;
-          const maxRedeem = document.getElementById("maxRedeem").value;
-          const expiry = document.getElementById("expiry").value;
+          const formData = new FormData(createCouponForm);
+          const couponData = Object.fromEntries(formData.entries());
       
-          if (couponCode === "") {
-            Swal.fire("Error!", "Coupon code cannot be empty.", "error");
-            return;
-          }
-      
-          Swal.fire({
-            title: "Are you sure?",
-            text: `Do you want to create the coupon "${couponCode}"?`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, create it!",
-            cancelButtonText: "No, cancel",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              fetch("/admin/createCoupon", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  couponCode: couponCode,
-                  type: document.getElementById("type").value,
-                  discount: discount,
-                  minimumPrice: minimumPrice,
-                  maxRedeem: maxRedeem,
-                  expiry: expiry,
-                }),
-              })
-              .then(response => response.json())
-              .then(data => {
-                if (data.success) {
-                  Swal.fire({
-                    title: "Created!",
-                    text: data.message,
-                    icon: "success",
-                    confirmButtonText: "Okay",
-                  }).then(() => {
-                    location.reload();
-                  });
-                } else {
-                  Swal.fire("Error!", data.message, "error");
-                }
-              })
-              .catch((error) => {
-                console.error("Error:", error);
-                Swal.fire("Error!", "There was a problem creating the coupon.", "error");
-              });
-            }
-          });
-        }
-      
-        function updateCoupon() {
-          const couponId = document.getElementById("couponId").value;
-          const couponCode = document.getElementById("editCouponCode").value.trim();
-          const type = document.getElementById("editType").value;
-          const discount = parseFloat(document.getElementById("editDiscount").value);
-          const minimumPrice = parseFloat(document.getElementById("editMinimumPrice").value);
-          const maxRedeem = parseInt(document.getElementById("editMaxRedeem").value);
-          const expiry = document.getElementById("editExpiry").value;
-      
-          if (couponCode === "" || discount < 0 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
-            Swal.fire("Error!", "Please fill out all fields correctly.", "error");
-            return;
-          }
-      
-          Swal.fire({
-            title: "Are you sure?",
-            text: `Do you want to update the coupon "${couponCode}"?`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, update it!",
-            cancelButtonText: "No, cancel",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              fetch(`/admin/updateCoupon/${couponId}`, {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  couponCode,
-                  type,
-                  discount,
-                  minimumPrice,
-                  maxRedeem,
-                  expiry,
-                }),
-              })
-              .then(response => response.json())
-              .then(data => {
-                if (data.success) {
-                  Swal.fire({
-                    title: "Updated!",
-                    text: data.message,
-                    icon: "success",
-                    confirmButtonText: "Okay",
-                  }).then(() => {
-                    location.reload();
-                  });
-                } else {
-                  Swal.fire("Error!", data.message, "error");
-                }
-              })
-              .catch((error) => {
-                console.error("Error:", error);
-                Swal.fire("Error!", "There was a problem updating the coupon.", "error");
-              });
-            }
-          });
-        }
-      
-        function toggleCouponStatus(couponId) {
-          fetch(`/admin/coupons/${couponId}/toggleStatus`, {
-            method: 'PATCH',
+          fetch("/admin/createCoupon", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
+            body: JSON.stringify(couponData),
           })
           .then(response => response.json())
           .then(data => {
             if (data.success) {
               Swal.fire({
-                title: 'Success!',
+                title: "Created!",
                 text: data.message,
-                icon: 'success',
-                confirmButtonText: 'Okay',
+                icon: "success",
+                confirmButtonText: "Okay",
               }).then(() => {
                 location.reload();
               });
             } else {
-              Swal.fire('Error!', data.message, 'error');
+              Swal.fire("Error!", data.message, "error");
             }
           })
-          .catch(error => {
-            console.error('Error:', error);
-            Swal.fire('Error!', 'There was a problem toggling the coupon status.', 'error');
+          .catch((error) => {
+            console.error("Error:", error);
+            Swal.fire("Error!", "There was a problem creating the coupon.", "error");
           });
         }
+      
+        function toggleCouponStatus(couponId, button) {
+  fetch(`/admin/coupons/${couponId}/toggleStatus`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      Swal.fire({
+        title: 'Success!',
+        text: data.message,
+        icon: 'success',
+        confirmButtonText: 'Okay',
+      }).then(() => {
+        // Update button text without reloading
+        button.textContent = data.newStatus ? 'Deactivate' : 'Activate';
+        // Update any status indicator if you have one
+        const statusIndicator = button.closest('tr').querySelector('.status-indicator');
+        if (statusIndicator) {
+          statusIndicator.textContent = data.newStatus ? 'Active' : 'Inactive';
+          statusIndicator.classList.toggle('alert-success', data.newStatus);
+          statusIndicator.classList.toggle('alert-danger', !data.newStatus);
+        }
+      });
+    } else {
+      Swal.fire('Error!', data.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    Swal.fire('Error!', 'There was a problem toggling the coupon status.', 'error');
+  });
+}
       });
       </script>
   </body>

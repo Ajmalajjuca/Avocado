@@ -493,6 +493,7 @@
         return 'Please provide a reason for cancellation.'
       }
     }
+
   }).then((result) => {
     if (result.isConfirmed) {
       const reason = result.value;
@@ -502,23 +503,24 @@
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ reason: reason })
-      }).then((response) => {
-        if (response.ok) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Order Canceled',
-            text: 'Your order has been successfully canceled.',
-            confirmButtonColor: '#28a745'
-          }).then(() => location.reload());
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Cancellation Failed',
-            text: 'There was a problem canceling your order. Please try again.',
-            confirmButtonColor: '#d33'
-          });
-        }
-      });
+      }).then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Order Canceled',
+              text: 'Your order has been successfully canceled. If eligible, the amount has been refunded to your wallet.',
+              confirmButtonColor: '#28a745'
+            }).then(() => location.reload());
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Cancellation Failed',
+              text: data.message || 'There was a problem canceling your order. Please try again.',
+              confirmButtonColor: '#d33'
+            });
+          }
+        });
     }
   });
 }
@@ -566,23 +568,24 @@ function confirmReturnOrder(orderId) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ reason: reason })
-      }).then((response) => {
-        if (response.ok) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Return Initiated',
-            text: 'Your return request has been successfully submitted.',
-            confirmButtonColor: '#28a745'
-          }).then(() => location.reload());
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Return Failed',
-            text: 'There was a problem initiating your return. Please try again.',
-            confirmButtonColor: '#d33'
-          });
-        }
-      });
+      }).then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Return Initiated',
+              text: 'Your return request has been successfully submitted. If eligible, the amount will be refunded to your wallet once processed.',
+              confirmButtonColor: '#28a745'
+            }).then(() => location.reload());
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Return Failed',
+              text: data.message || 'There was a problem initiating your return. Please try again.',
+              confirmButtonColor: '#d33'
+            });
+          }
+        });
     }
   });
 }

@@ -19,10 +19,10 @@ const getCoupon = async ( req,res)=>{
 
 const postCreateCoupon = async (req, res) => {
     try {
-      const { couponCode, type, discount, minimumPrice, maxRedeem, expiry } = req.body;
+      const { couponCode, discount, minimumPrice, maxRedeem, expiry } = req.body;
   
       // Validation
-      if (!couponCode || !type || discount < 0 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
+      if (!couponCode || discount < 0 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
         return res.status(400).json({ success: false, message: 'Invalid input data' });
       }
   
@@ -35,7 +35,6 @@ const postCreateCoupon = async (req, res) => {
       // Create new coupon
       const newCoupon = new couponModel({
         couponCode,
-        type,
         discount,
         minimumPrice,
         maxRedeem,
@@ -56,13 +55,23 @@ const postCreateCoupon = async (req, res) => {
 
 
 
- const updateCoupon = async (req, res) => {
+  const updateCoupon = async (req, res) => {
     try {
-      const { couponCode, type, discount, minimumPrice, maxRedeem, expiry } = req.body;
+      const { couponCode, discount, minimumPrice, maxRedeem, expiry } = req.body;
   
       // Validation
-      if (!couponCode || !type || discount < 0 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
+      if (!couponCode || discount < 0 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
         return res.status(400).json({ success: false, message: 'Invalid input data' });
+      }
+  
+      // Check if the coupon code already exists (excluding the current coupon)
+      const existingCoupon = await couponModel.findOne({ 
+        couponCode: couponCode, 
+        _id: { $ne: req.params.id } 
+      });
+  
+      if (existingCoupon) {
+        return res.status(400).json({ success: false, message: 'Coupon code already exists' });
       }
   
       // Find and update the coupon
@@ -70,7 +79,6 @@ const postCreateCoupon = async (req, res) => {
         req.params.id,
         {
           couponCode,
-          type,
           discount,
           minimumPrice,
           maxRedeem,
@@ -92,11 +100,20 @@ const postCreateCoupon = async (req, res) => {
 
   const updatestatus =  async (req, res) => {
     try {
-      const updatedCoupon = await couponModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!updatedCoupon) {
-        return res.json({ success: false, message: 'Coupon not found' });
-      }
-      res.json({ success: true, message: 'Coupon updated successfully' });
+      const coupon = await couponModel.findById(req.params.id);
+    if (!coupon) {
+      return res.json({ success: false, message: 'Coupon not found' });
+    }
+
+      coupon.status = !coupon.status;
+    
+    const updatedCoupon = await coupon.save();
+    
+    res.json({ 
+      success: true, 
+      message: 'Coupon status updated successfully',
+      newStatus: updatedCoupon.status
+    });
     } catch (error) {
       console.error(error);
       res.status(400).json({ success: false, message: 'Error updating coupon' });

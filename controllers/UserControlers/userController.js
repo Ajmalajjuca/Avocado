@@ -7,6 +7,7 @@ const categoriesModel = require("../../models/categorieModel")
 const productModel = require("../../models/productModel")
 const crypto = require('crypto');
 const address = require('../../models/addressModel')
+const offerModel = require('../../models/offersModel');
 const {
   isValidName,
   isValidPassword,
@@ -20,17 +21,57 @@ const getHome = async (req, res) => {
     const categories = await categoriesModel.find({ status: true });
     const products = await productModel.find({ status: true }).populate('category');
     const LatestProducts = await productModel.find({ status: true })
-    .sort({ createdAt: -1 })  // Sort by newest first
-    .limit(9);   // Fetch latest 3 products
+      .sort({ createdAt: -1 })
+      .limit(9);
 
-    
-   
+    // Fetch active offers
+    const activeOffers = await offerModel.find({
+      startDate: { $lte: new Date() },
+      endDate: { $gte: new Date() }
+    });
+
+    // Apply offers to products
+    const applyOffers = (products) => {
+      return products.map(product => {
+        const applicableOffer = activeOffers.find(offer => 
+          (offer.offerType === 'product' && offer.productId.toString() === product._id.toString()) ||
+          (offer.offerType === 'category' && offer.categoryId.toString() === product.category._id.toString())
+        );
+
+        if (applicableOffer) {
+          const discountedPrice = product.price * (1 - applicableOffer.discount / 100);
+          return { 
+            ...product.toObject(), 
+            offerPrice: discountedPrice, 
+            offer: applicableOffer 
+          };
+        }
+
+        return product;
+      });
+    };
+
+    const productsWithOffers = applyOffers(products);
+    const LatestProductsWithOffers = applyOffers(LatestProducts);
+
     if (req.session.isAuth) {
       const user = await userModal.findOne({ email: req.session.user.email }).populate("address");
-      res.render("user/home", { user: user.username, categories, products,LatestProducts });
+      res.render("user/home", { 
+        user: user.username, 
+        categories, 
+        products: productsWithOffers, 
+        LatestProducts: LatestProductsWithOffers 
+        
+      });
     } else {
-      res.render("user/home", { error: req.flash("error"), categories, products,LatestProducts });
+      res.render("user/home", { 
+        error: req.flash("error"), 
+        categories, 
+        products: productsWithOffers, 
+        LatestProducts: LatestProductsWithOffers 
+      });
     }
+    
   } catch (err) {
     console.error("rendering error:", err);
     res.render("user/404Error");
@@ -65,17 +106,67 @@ const  getlogout = async (req, res) => {
 const getShop = async (req, res) => {
   try {
     const categories = await categoriesModel.find({ status: true });
-    let products, category;
+    let  category;
+    let filter = { status: true };
+    let sort = {};
 
-    if (req.params.categoryId) {
-      category = await categoriesModel.findById(req.params.categoryId);
-      if (!category) {
-        return res.status(404).render("user/404Error");
-      }
-      products = await productModel.find({ status: true, category: category._id });
-    } else {
-      products = await productModel.find({ status: true });
+    // Category filter
+    if (req.query.category) {
+      filter.category = req.query.category;
     }
+
+    
+    // Stock filter
+    if (req.query.stock) {
+      switch (req.query.stock) {
+        case 'inStock':
+          filter.stock = { $gt: 0 };
+          break;
+        case 'outOfStock':
+          filter.stock = 0;
+          break;
+      }
+    }
+
+    // New product filter (products added in the last 7 days)
+    if (req.query.new) {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      filter.createdAt = { $gte: sevenDaysAgo };
+    }
+
+    // Sale filter
+    if (req.query.sale === 'true') {
+      filter.offer = { $exists: true, $ne: null };
+    }
+
+    // Sorting
+    if (req.query.sort) {
+      switch (req.query.sort) {
+        case 'priceLowToHigh':
+          sort.price = 1;
+          break;
+        case 'priceHighToLow':
+          sort.price = -1;
+          break;
+        default:
+          sort = { createdAt: -1 }; // Default sorting
+      }
+    } else {
+      sort = { createdAt: -1 }; // Default sorting when no sort is specified
+    }
+
+    const products = await productModel.find(filter).sort(sort);
+
+    const enhancedProducts = products.map(product => ({
+      ...product.toObject(),
+      isInStock: product.stock > 0,
+      isNew: (new Date() - product.createdAt) / (1000 * 60 * 60 * 24) < 7,
+      offerPrice: product.offer ? product.price * (1 - product.offer.discount / 100) : null
+    }));
+
+    // Separate offer products and normal products
+    const offerProducts = enhancedProducts.filter(product => product.offer);
+    const normalProducts = enhancedProducts.filter(product => !product.offer);
 
     const LatestProducts = await productModel.find({ status: true })
       .sort({ createdAt: -1 })
@@ -83,9 +174,12 @@ const getShop = async (req, res) => {
 
     const renderData = {
       categories: categories,
-      products: products,
+      products: enhancedProducts,
+      offerProducts: offerProducts,
+      normalProducts: normalProducts,
       LatestProducts: LatestProducts,
-      category: category
+      currentFilters: req.query,
+      category:category
     };
 
     if (req.session.isAuth) {

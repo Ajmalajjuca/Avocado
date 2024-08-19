@@ -85,6 +85,11 @@ const schema = new mongoose.Schema({
     }],
     razorpay_order_id: { type: String },
     razorpay_payment_id: { type: String },
+    totalSavings: {
+        type: Number,
+        required: true,
+        default: 0
+      },
 });
 
 const orderModel = mongoose.model('order', schema);

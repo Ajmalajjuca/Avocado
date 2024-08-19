@@ -16,7 +16,7 @@
             <p>Update the details of your existing coupon</p>
           </div>
           <div>
-            <a href="/admin/categories" class="btn btn-primary"><i class="material-icons md-arrow_back"></i> Back to list</a>
+            <a href="/admin/coupon" class="btn btn-primary"><i class="material-icons md-arrow_back"></i> Back to list</a>
           </div>
         </div>
         <div class="card">
@@ -36,13 +36,7 @@
                       required
                     />
                   </div>
-                  <div class="mb-4">
-                    <label for="type" class="form-label">Discount Type</label>
-                    <select class="form-control" name="type" id="type" required>
-                      <option value="percentage" <%= coupon.type === 'percentage' ? 'selected' : '' %>>Percentage</option>
-                      <option value="fixed_amount" <%= coupon.type === 'fixed_amount' ? 'selected' : '' %>>Fixed Amount</option>
-                    </select>
-                  </div>
+                  
                   <div class="mb-4">
                     <label for="discount" class="form-label">Discount</label>
                     <input
@@ -124,86 +118,56 @@
           event.preventDefault();
           updateCoupon();
         });
-
+      
         function updateCoupon() {
           const couponId = '<%= coupon._id %>';
-          const couponCode = document.getElementById("couponCode").value.trim();
-          const type = document.getElementById("type").value;
-          const discount = parseFloat(document.getElementById("discount").value);
-          const minimumPrice = parseFloat(document.getElementById("minimumPrice").value);
-          const maxRedeem = parseInt(document.getElementById("maxRedeem").value);
-          const expiry = document.getElementById("expiry").value;
-
-          if (couponCode === "" || discount < 0 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
+          const formData = new FormData(document.getElementById("editCouponForm"));
+          const couponData = Object.fromEntries(formData.entries());
+      
+          if (couponData.couponCode.trim() === "" || couponData.discount < 0 || couponData.minimumPrice < 0 || couponData.maxRedeem < 0 || !couponData.expiry) {
             Swal.fire("Error!", "Please fill out all fields correctly.", "error");
             return;
           }
-
+      
           Swal.fire({
             title: "Are you sure?",
-            text: `Do you want to update the coupon "${couponCode}"?`,
+            text: `Do you want to update the coupon "${couponData.couponCode}"?`,
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Yes, update it!",
             cancelButtonText: "No, cancel",
           }).then((result) => {
             if (result.isConfirmed) {
-                fetch(`/admin/updateCoupon/${couponId}`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    couponCode,
-    type,
-    discount,
-    minimumPrice,
-    maxRedeem,
-    expiry,
-  }),
-})
-.then(response => {
-  console.log('Response status:', response.status);
-  console.log('Response headers:', response.headers.get('content-type'));
-  return response.text(); // Change this from response.json() to response.text()
-})
-.then(text => {
-  console.log('Raw response:', text);
-  try {
-    return JSON.parse(text); // Try to parse the text as JSON
-  } catch (e) {
-    throw new SyntaxError('Invalid JSON: ' + text);
-  }
-})
-.then(data => {
-  console.log('Parsed data:', data);
-  if (data.success) {
-    Swal.fire({
-      title: "Updated!",
-      text: data.message,
-      icon: "success",
-      confirmButtonText: "Okay",
-    }).then(() => {
-      window.location.href = '/admin/coupon';
-    });
-  } else {
-    Swal.fire("Error!", data.message, "error");
-  }
-})
-.catch((error) => {
-  console.error("Error details:", error);
-  let errorMessage = "There was a problem updating the coupon.";
-  if (error instanceof TypeError) {
-    errorMessage = "Network error. Please check your connection.";
-  } else if (error instanceof SyntaxError) {
-    errorMessage = "Received invalid response from server: " + error.message;
-  }
-  Swal.fire("Error!", errorMessage, "error");
-});
+              fetch(`/admin/updateCoupon/${couponId}`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(couponData),
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  Swal.fire({
+                    title: "Updated!",
+                    text: data.message,
+                    icon: "success",
+                    confirmButtonText: "Okay",
+                  }).then(() => {
+                    window.location.href = '/admin/coupon';
+                  });
+                } else {
+                  Swal.fire("Error!", data.message, "error");
+                }
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                Swal.fire("Error!", "There was a problem updating the coupon.", "error");
+              });
             }
           });
         }
       });
-    </script>
+      </script>
   </body>
 </html>

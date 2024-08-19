@@ -270,45 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateWishlistInfo, 30000);
 });
 
-async function addToWishlist(productId) {
-    try {
-      const response = await fetch("/wishlist/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ productId }),
-      });
 
-      if (response.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: data.message,
-        });
-        updateWishlistInfo();
-        
-
-        // Optionally, you can update the UI here
-      } else {
-        throw new Error(data.message || "Failed to add product to wishlist");
-      }
-    } catch (error) {
-      console.error("Error adding product to wishlist:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: error.message || "Failed to add product to wishlist",
-      });
-    }
-  }
    
  </script>
 </header>

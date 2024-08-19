@@ -15,6 +15,7 @@ const walletController = require('../controllers/UserControlers/walletController
 
 router.get("/", userController.getHome);
 router.get("/shop", userController.getShop);
+router.get('/shop/:categoryId?', userController.getShop);
 router.get("/contact", userController.getContact);
 router.get("/login", userController.getLogin);
 router.get("/signup", userController.getSignup);
@@ -53,7 +54,7 @@ router.get("/categories/:id",productController.getcategoriesProduct)
 
 
 //profile
-router.get('/orders', profileController.getUserOrders);
+
 router.get('/ChangePass',profileController.ChangePass)
 router.post('/change-password',authMiddleware,profileController.changePassword)
 
@@ -79,8 +80,8 @@ router.post('/cart/apply-coupon',authMiddleware,findCartByUser,cartController.ap
 router.get('/checkout', authMiddleware, findCartByUser,checkoutController.getcheckout)
 router.get('/order-confirmation/:orderId', authMiddleware, checkoutController.getOrderConfirmation);
 router.post('/place-order', authMiddleware, findCartByUser, checkoutController.placeOrder);
-router.post('/update-order-status',authMiddleware,checkoutController.UpdateOrderStatus)
-router.post('/cancel-order',authMiddleware,checkoutController.CancelOrder)
+// router.post('/update-order-status',authMiddleware,checkoutController.UpdateOrderStatus)
+// router.post('/cancel-order',authMiddleware,checkoutController.CancelOrder)
 router.post('/create-razorpay-order', authMiddleware, findCartByUser, checkoutController.createRazorpayOrder);
 
 //wallet
@@ -90,6 +91,7 @@ router.post('/verify-payment',walletController.verifyPayment)
 
 
 //order
+router.get('/orders', orderController.getUserOrders);
 router.get('/orders/:orderId/details',orderController.getOrderid)
 router.post('/orders/:orderId/cancel',orderController.postOrderCancel)
 router.post('/orders/:orderId/return',orderController.postOrderReturn)
