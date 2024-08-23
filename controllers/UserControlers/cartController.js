@@ -282,4 +282,24 @@ async function applyDiscountToCart(userId, discountAmount, couponCode) {
   return cart;
 }
 
-module.exports = { postcart, getcart, postremove, postupdate,cartcount,applyCoupon };
+const checkStock = async (req, res) => {
+  try {
+      const { productId, quantity } = req.params;
+      const product = await productModel.findById(productId);
+      
+      if (!product) {
+          return res.json({ success: false, message: 'Product not found' });
+      }
+
+      if (product.stock < parseInt(quantity)) {
+          return res.json({ success: false, message: `Only ${product.stock} items available in stock` });
+      }
+
+      return res.json({ success: true });
+  } catch (error) {
+      console.error('Error checking stock:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = { postcart, getcart, postremove, postupdate,cartcount,applyCoupon,checkStock };

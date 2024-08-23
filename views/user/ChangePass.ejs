@@ -2,84 +2,142 @@
 <html lang="en">
 <head>
   <%- include('partials/head'); %>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
     .change-password-form {
       width: 100%;
       max-width: 400px;
-      margin: 20px auto;
-      padding: 20px;
-      background-color: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 5px;
+      padding: 30px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    .change-password-form:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
     }
     .form-group {
-      margin-bottom: 15px;
+      margin-bottom: 25px;
+      position: relative;
     }
     .form-group label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
       font-weight: bold;
+      color: #333;
+      transition: all 0.3s ease;
     }
     .form-group input {
       width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      padding: 12px 40px 12px 15px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
       font-size: 1em;
+      transition: all 0.3s ease;
+    }
+    .form-group input:focus {
+      border-color: #7FAD39;
+      box-shadow: 0 0 0 3px rgba(127, 173, 57, 0.2);
+    }
+    .form-group i {
+      position: absolute;
+      right: 15px;
+      top: 40px;
+      color: #aaa;
+      transition: all 0.3s ease;
+    }
+    .form-group input:focus + i {
+      color: #7FAD39;
     }
     .change-btn {
+      width: 100%;
       background-color: #7FAD39;
       color: white;
-      padding: 10px 15px;
+      padding: 12px;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 1em;
+      font-size: 1.1em;
+      font-weight: bold;
+      transition: all 0.3s ease;
     }
     .change-btn:hover {
       background-color: #6d9435;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(127, 173, 57, 0.4);
+    }
+    .error, .success {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
     }
     .error {
-      color: red;
-      text-align: center;
-      margin-bottom: 15px;
+      background-color: #ffe6e6;
+      color: #d63031;
     }
     .success {
-      color: rgba(48, 160, 0, 0.87);
+      background-color: #e6ffe6;
+      color: #00b894;
+    }
+    h3 {
       text-align: center;
-      margin-bottom: 15px;
+      color: #2d3436;
+      margin-bottom: 30px;
+      font-size: 2em;
     }
   </style>
 </head>
 <body>
   <%- include('partials/header'); %>
   <div class="container">
-    <h3>Change Password</h3>
-    <% if (messages.error && messages.error.length > 0) { %>
-      <div class="error" role="alert"><%= messages.error[0] %></div>
-    <% } %>
-    <% if (messages.info && messages.info.length > 0) { %>
-      <div class="success" role="alert"><%= messages.info[0] %></div>
-    <% } %>
-    <% if (messages.success && messages.success.length > 0) { %>
-      <div class="success" role="alert"><%= messages.success[0] %></div>
-    <% } %>
-    <form class="change-password-form" action="/change-password" method="POST">
-      <div class="form-group">
-        <label for="new-password">New Password:</label>
-        <input type="password" id="new-password" name="newPassword" required>
-      </div>
-      <div class="form-group">
-        <label for="confirm-password">Confirm New Password:</label>
-        <input type="password" id="confirm-password" name="confirmPassword" required>
-      </div>
-      <button type="submit" class="change-btn">Change Password</button>
-    </form>
+    <div class="change-password-form animate__animated animate__fadeInDown">
+      <h3>Change Password</h3>
+      <% if (messages.error && messages.error.length > 0) { %>
+        <div class="error animate__animated animate__shakeX" role="alert"><%= messages.error[0] %></div>
+      <% } %>
+      <% if (messages.info && messages.info.length > 0) { %>
+        <div class="success animate__animated animate__bounceIn" role="alert"><%= messages.info[0] %></div>
+      <% } %>
+      <% if (messages.success && messages.success.length > 0) { %>
+        <div class="success animate__animated animate__bounceIn" role="alert"><%= messages.success[0] %></div>
+      <% } %>
+      <form action="/change-password" method="POST">
+        <div class="form-group">
+          <label for="new-password">New Password:</label>
+          <input type="password" id="new-password" name="newPassword" required>
+          <i class="fas fa-lock"></i>
+        </div>
+        <div class="form-group">
+          <label for="confirm-password">Confirm New Password:</label>
+          <input type="password" id="confirm-password" name="confirmPassword" required>
+          <i class="fas fa-lock"></i>
+        </div>
+        <button type="submit" class="change-btn animate__animated animate__pulse animate__infinite">Change Password</button>
+      </form>
+    </div>
   </div>
   <%- include('partials/footer') %>
   <%- include('partials/foot') %>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
   <script>
+    // Your existing form validation script here
     document.querySelector('.change-password-form').addEventListener('submit', function(e) {
       const newPassword = document.getElementById('new-password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
@@ -128,6 +186,27 @@
           text: 'Please ensure both passwords match!',
         });
       }
+    });
+    
+
+    // GSAP animations
+    gsap.from(".change-password-form", {duration: 1, y: 50, opacity: 0, ease: "power3.out"});
+    gsap.from(".form-group", {duration: 0.8, y: 20, opacity: 0, stagger: 0.2, ease: "power3.out", delay: 0.5});
+    gsap.from(".change-btn", {duration: 0.5, scale: 0.5, opacity: 0, ease: "back.out(1.7)", delay: 1.5});
+
+    // Input focus animations
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('focus', () => {
+        gsap.to(input, {duration: 0.3, scale: 1.05, ease: "power2.out"});
+        gsap.to(input.previousElementSibling, {duration: 0.3, y: -5, color: "#7FAD39", ease: "power2.out"});
+      });
+      input.addEventListener('blur', () => {
+        gsap.to(input, {duration: 0.3, scale: 1, ease: "power2.out"});
+        if (!input.value) {
+          gsap.to(input.previousElementSibling, {duration: 0.3, y: 0, color: "#333", ease: "power2.out"});
+        }
+      });
     });
   </script>
 </body>

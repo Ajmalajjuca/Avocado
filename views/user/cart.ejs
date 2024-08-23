@@ -4,16 +4,96 @@
 <head>
     <%- include('partials/head.ejs') %>
     <style>
+        .shoping__cart__item .cart-item-image {
+            max-width: 80px;
+            max-height: 80px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
     
-    .shoping__cart__item .cart-item-image {
-  max-width: 80px;  /* Adjust this value as needed */
-  max-height: 80px; /* Adjust this value as needed */
-  width: auto;
-  height: auto;
-  object-fit: contain;
-}
-
-    </style>
+        .shoping__cart__item:hover .cart-item-image {
+            transform: scale(1.1);
+        }
+    
+        .shoping__cart__table {
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+    
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+    
+        .shoping__cart__table tr {
+            transition: background-color 0.3s ease;
+        }
+    
+        .shoping__cart__table tr:hover {
+            background-color: #f8f9fa;
+        }
+    
+        .quantity input {
+            transition: all 0.3s ease;
+        }
+    
+        .quantity input:focus {
+            box-shadow: 0 0 0 2px #7fad39;
+        }
+    
+        .icon_close {
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+    
+        .icon_close:hover {
+            color: #dc3545;
+        }
+    
+        .primary-btn {
+            transition: all 0.3s ease;
+        }
+    
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    
+        .shoping__discount input,
+        .shoping__discount button {
+            transition: all 0.3s ease;
+        }
+    
+        .shoping__discount input:focus {
+            box-shadow: 0 0 0 2px #7fad39;
+        }
+    
+        .shoping__checkout {
+            opacity: 0;
+            animation: slideIn 0.8s ease-out 0.4s forwards;
+        }
+    
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    
+        .colored-toast {
+            border-radius: 10px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+        }
+    
+        .hero, .breadcrumb-section {
+            transition: background-image 0.5s ease-in-out;
+        }
+        </style>
 </head>
 
 <body>
@@ -100,7 +180,7 @@
                                     <td class="shoping__cart__quantity">
                                       <div class="quantity">
                                         <div class="pro-qty">
-                                          <input type="number" value="<%= item.quantity %>" onchange="updateQuantity('<%= item.productId._id %>', this.value)">
+                                          <input type="number" value="<%= item.quantity %>" onchange="updateQuantity('<%= item.productId._id %>', this.value)" min="1">
                                         </div>
                                       </div>
                                     </td>
@@ -196,7 +276,12 @@ async function removeFromCart(productId) {
 
 async function updateQuantity(productId, quantity) {
     try {
-        console.log('Updating product:', productId, 'to quantity:', quantity);
+        const stockStatus = await checkStock(productId, quantity);
+        if (!stockStatus.success) {
+            showToast('error', stockStatus.message);
+            return;
+        }
+
         const response = await fetch('/cart/update', {
             method: 'POST',
             headers: {
@@ -220,6 +305,23 @@ async function updateQuantity(productId, quantity) {
     }
 }
 
+async function checkStock(productId, quantity) {
+    try {
+        const response = await fetch(`/product/check-stock/${productId}/${quantity}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error checking stock:', error);
+        return { success: false, message: 'Failed to check stock' };
+    }
+}
+
 
 function updateCartDisplay(cartData) {
     const cartItemsContainer = document.getElementById('cart-items');
@@ -239,7 +341,7 @@ function updateCartDisplay(cartData) {
         <td class="shoping__cart__quantity">
           <div class="quantity">
             <div class="pro-qty">
-              <input type="number" value="${item.quantity}" onchange="updateQuantity('${item.productId._id}', this.value)">
+              <input type="number" value="${item.quantity}" onchange="updateQuantity('${item.productId._id}', this.value)" min="1">
             </div>
           </div>
         </td>
@@ -375,6 +477,44 @@ function showToast(icon, title) {
         color: textColor
     })
 }
+
+function addParallaxEffect() {
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.pageYOffset;
+            document.querySelector('.hero').style.backgroundPositionY = scrollPosition * 0.5 + 'px';
+            document.querySelector('.breadcrumb-section').style.backgroundPositionY = -scrollPosition * 0.2 + 'px';
+        });
+    }
+
+    function addQuantityAnimation() {
+        const quantities = document.querySelectorAll('.pro-qty input');
+        quantities.forEach(input => {
+            input.addEventListener('change', function() {
+                this.classList.add('pulse');
+                setTimeout(() => this.classList.remove('pulse'), 500);
+            });
+        });
+    }
+
+    function enhanceButtonInteractions() {
+        const buttons = document.querySelectorAll('.primary-btn');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.05)';
+            });
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    }
+
+    // Call these functions after the page loads
+    window.addEventListener('load', function() {
+        addParallaxEffect();
+        addQuantityAnimation();
+        enhanceButtonInteractions();
+    });
+
 
 </script>
 </body>

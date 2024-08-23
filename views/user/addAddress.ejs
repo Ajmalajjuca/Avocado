@@ -3,67 +3,157 @@
 <head>
     <%- include('partials/head.ejs') %>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .add-address-container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control {
+    padding-right: 40px;
+    padding-left: 15px;
+}
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            border-color: #80bdff;
+        }
+        .input-icon {
+    position: absolute;
+    right: 10px;
+    top: 42px;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+        .form-control:focus + .input-icon {
+            color: #007bff;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        }
+        .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+    </style>
 </head>
 <body>
     <header>
         <%- include('partials/header.ejs') %>
     </header>
 
-    <div class="container mt-5">
-        <h2 class="text-center mb-4">Add New Address</h2>
-        <form id="add-address-form" action="/addAddress" method="POST">
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="mobile">Mobile</label>
-                <input type="text" id="mobile" name="mobile" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="housename">House Name</label>
-                <input type="text" id="housename" name="housename" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="street">Street</label>
-                <input type="text" id="street" name="street" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="city">City</label>
-                <input type="text" id="city" name="city" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="state">State</label>
-                <input type="text" id="state" name="state" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="country">Country</label>
-                <input type="text" id="country" name="country" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="pincode">Pincode</label>
-                <input type="text" id="pincode" name="pincode" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="save_as">Save As</label>
-                <input type="text" id="save_as" name="save_as" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Add Address</button>
-        </form>
+    <div class="container mt-5 animate__animated animate__fadeIn">
+        <div class="add-address-container">
+            <h2 class="text-center mb-4 animate__animated animate__bounceIn">Add New Address</h2>
+            <button id="use-location" class="btn btn-secondary mb-3">
+                <i class="fas fa-map-marker-alt mr-2"></i>Use My Current Location
+            </button>
+            <form id="add-address-form" action="/addAddress" method="POST" autocomplete="off">
+                    <div class="form-group">
+                    <label for="name">Name </label>
+                    <input type="text" id="name" name="name" class="form-control" required>
+                    <i class="fas fa-user input-icon"></i>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" required>
+                    <i class="fas fa-envelope input-icon"></i>
+                </div>
+                <div class="form-group">
+                    <label for="mobile">Mobile</label>
+                    <input type="text" id="mobile" name="mobile" class="form-control" required>
+                    <i class="fas fa-mobile-alt input-icon"></i>
+                </div>
+                <div class="form-group">
+                    <label for="housename">House Name</label>
+                    <input type="text" id="housename" name="housename" class="form-control" required>
+                    <i class="fas fa-home input-icon"></i>
+                </div>
+                <div class="form-group">
+                    <label for="street">Street</label>
+                    <input type="text" id="street" name="street" class="form-control" required>
+                    <i class="fas fa-road input-icon"></i>
+                </div>
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" class="form-control" required>
+                    <i class="fas fa-city input-icon"></i>
+                </div>
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <input type="text" id="state" name="state" class="form-control" required>
+                    <i class="fas fa-map-marker-alt input-icon"></i>
+                </div>
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <input type="text" id="country" name="country" class="form-control" required>
+                    <i class="fas fa-globe input-icon"></i>
+                </div>
+                <div class="form-group">
+                    <label for="pincode">Pincode</label>
+                    <input type="text" id="pincode" name="pincode" class="form-control" required>
+                    <i class="fas fa-map-pin input-icon"></i>
+                </div>
+                <div class="form-group">
+                    <label for="save_as">Save As</label>
+                    <input type="text" id="save_as" name="save_as" class="form-control" required>
+                    <i class="fas fa-tag input-icon"></i>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block animate__animated animate__pulse">Add Address</button>
+                
+            </form>
+            
+        </div>
     </div>
 
     <footer>
         <%- include('partials/footer.ejs') %>
     </footer>
-
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=<%=apiKey%>&libraries=places"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/jquery-3.3.1.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
     <script>
+        
+        
         document.getElementById('add-address-form').addEventListener('submit', function(event) {
             event.preventDefault();
             const name = document.getElementById('name').value.trim();
@@ -99,6 +189,75 @@
 
             this.submit();
         });
+
+        // GSAP animations
+        gsap.from(".add-address-container", {duration: 1, y: 50, opacity: 0, ease: "power3.out"});
+        gsap.from(".form-group", {duration: 0.8, y: 20, opacity: 0, stagger: 0.1, ease: "power3.out", delay: 0.5});
+        gsap.from(".btn-primary", {duration: 0.5, scale: 0.5, opacity: 0, ease: "back.out(1.7)", delay: 1.5});
+
+        // Input focus animations
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                gsap.to(input, {duration: 0.3, scale: 1.05, ease: "power2.out"});
+                gsap.to(input.previousElementSibling, {duration: 0.3, y: -5, color: "#007bff", ease: "power2.out"});
+            });
+            input.addEventListener('blur', () => {
+                gsap.to(input, {duration: 0.3, scale: 1, ease: "power2.out"});
+                if (!input.value) {
+                    gsap.to(input.previousElementSibling, {duration: 0.3, y: 0, color: "#333", ease: "power2.out"});
+                }
+            });
+        });
+        document.getElementById('use-location').addEventListener('click', function(event) {
+    event.preventDefault();
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            
+            const geocoder = new google.maps.Geocoder();
+            const latlng = new google.maps.LatLng(latitude, longitude);
+            
+            geocoder.geocode({ 'latLng': latlng }, function(results, status) {
+                if (status === google.maps.GeocoderStatus.OK) {
+                    if (results[0]) {
+                        const addressComponents = results[0].address_components;
+                        const formattedAddress = results[0].formatted_address;
+                        
+                        // Function to get address component
+                        function getAddressComponent(type) {
+                            const component = addressComponents.find(component => component.types.includes(type));
+                            return component ? component.long_name : '';
+                        }
+                        
+                        // Fill the form fields
+                        document.getElementById('housename').value = getAddressComponent('street_number') || 'N/A';
+                        document.getElementById('street').value = getAddressComponent('route') || formattedAddress.split(',')[0];
+                        document.getElementById('city').value = getAddressComponent('locality') || getAddressComponent('administrative_area_level_2');
+                        document.getElementById('state').value = getAddressComponent('administrative_area_level_1');
+                        document.getElementById('country').value = getAddressComponent('country');
+                        document.getElementById('pincode').value = getAddressComponent('postal_code');
+                        
+                        // Animate the filled fields
+                        gsap.from('.form-control', {duration: 0.5, scale: 1.05, opacity: 0.5, stagger: 0.1, ease: "power2.out"});
+                        
+                        Swal.fire('Location Updated', 'The form has been filled with your current location. Please review and adjust if needed.', 'success');
+                    } else {
+                        Swal.fire('Error', 'No results found for your location.', 'error');
+                    }
+                } else {
+                    Swal.fire('Error', 'Geocoder failed due to: ' + status, 'error');
+                }
+            });
+        }, function(error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'Unable to get your current location. Please fill the form manually.', 'error');
+        });
+    } else {
+        Swal.fire('Error', 'Geolocation is not supported by your browser. Please fill the form manually.', 'error');
+    }
+});
     </script>
     <%- include('partials/foot.ejs') %>
 </body>

@@ -12,6 +12,8 @@ const userModel = require("../models/userModel");
 const orderController = require('../controllers/UserControlers/ordercontroler')
 const wishlistController = require('../controllers/UserControlers/wishlistController')
 const walletController = require('../controllers/UserControlers/walletController')
+const invoiceController = require('../controllers/UserControlers/invoiceController')
+
 
 router.get("/", userController.getHome);
 router.get("/shop", userController.getShop);
@@ -75,6 +77,7 @@ router.post('/cart/remove', authMiddleware, findCartByUser, cartController.postr
 router.post('/cart/update', authMiddleware, findCartByUser, cartController.postupdate);
 router.get('/cart/count', authMiddleware, findCartByUser, cartController.cartcount);
 router.post('/cart/apply-coupon',authMiddleware,findCartByUser,cartController.applyCoupon)
+router.get('/product/check-stock/:productId/:quantity',authMiddleware,findCartByUser,cartController.checkStock);
 
 //checkout
 router.get('/checkout', authMiddleware, findCartByUser,checkoutController.getcheckout)
@@ -83,6 +86,7 @@ router.post('/place-order', authMiddleware, findCartByUser, checkoutController.p
 // router.post('/update-order-status',authMiddleware,checkoutController.UpdateOrderStatus)
 // router.post('/cancel-order',authMiddleware,checkoutController.CancelOrder)
 router.post('/create-razorpay-order', authMiddleware, findCartByUser, checkoutController.createRazorpayOrder);
+
 
 //wallet
 router.get('/wallet',walletController.getWalletInfo,)
@@ -103,7 +107,9 @@ router.post('/wishlist/remove', authMiddleware, wishlistController.removeFromWis
 router.post('/wishlist/move-to-cart', authMiddleware, wishlistController.moveToCart);
 router.get('/wishlist/count', authMiddleware, wishlistController.getWishlistCount);
 
-
+router.get('/invoice/:id',authMiddleware,invoiceController.getInvoice)
+router.get('/download-invoice/:orderId',authMiddleware,invoiceController.downloadInvoice);
+router.post('/send-invoice/:orderId',authMiddleware,invoiceController.sendInvoice);
 
 router.get('/check-auth', (req, res) => {
   res.json({ isLoggedIn: req.session.isAuth || false });

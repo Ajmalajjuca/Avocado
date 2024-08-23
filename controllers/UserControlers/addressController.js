@@ -1,6 +1,7 @@
 const addressModel = require("../../models/addressModel")
 const userModal = require("../../models/userModel");
 const { isValidName, isValidEmail, isValidPhone, isValidPincode } = require("../../validation/regexValidation");
+const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
 const getAddresses = async (req, res) => {
     try {
@@ -32,7 +33,7 @@ const getAddresses = async (req, res) => {
 const getAddAddresses = async (req, res) => {
     try {
         const user = await userModal.findOne({ email: req.session.user.email });
-        res.render("user/addAddress", { user: user.username });
+        res.render("user/addAddress", { user: user.username,apiKey });
     } catch (error) {
         res.status(500).send('Server Error');
     }

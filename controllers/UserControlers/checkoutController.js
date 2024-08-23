@@ -37,6 +37,7 @@ const getcheckout = async (req, res) => {
 const placeOrder = async (req, res) => {
   try {
     const { addressId, paymentMethod,totalSavings } = req.body;
+
     
     const cart = req.cart;
 
@@ -117,6 +118,8 @@ const placeOrder = async (req, res) => {
         totalSavings: parseFloat(totalSavings),
       }); 
 
+      await order.save();
+
     // Check if payment method is wallet
     if (paymentMethod === "wallet") {
       if (user.balance < cart.Cart_total) {
@@ -137,8 +140,11 @@ const placeOrder = async (req, res) => {
       await transaction.save();
 
       order.paymentstatus = "Confirmed";
+      await order.save();
 
-    }else if (paymentMethod === "card") {
+
+    }else if (paymentMethod === "razorpay") {
+      
       const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
 
       if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
@@ -162,9 +168,10 @@ const placeOrder = async (req, res) => {
       order.paymentstatus = "Confirmed";
       order.razorpay_order_id = razorpay_order_id;
       order.razorpay_payment_id = razorpay_payment_id;
+      await order.save();
     }
 
-    await order.save();
+    
 
     // Reduce stock quantities
     for (let item of cart.items) {
@@ -220,79 +227,6 @@ const getOrderConfirmation = async (req, res) => {
   }
 };
 
-// const UpdateOrderStatus = async (req, res) => {
-//   try {
-//     const { orderId, newStatus } = req.body;
-//     const order = await orderModel.findById(orderId);
-
-//     if (!order) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Order not found" });
-//     }
-
-//     const allowedStatusChanges = {
-//       pending: ["Canceled"],
-//       "in-transit": ["Canceled"],
-//       shipped: ["Canceled"],
-//       delivered: ["Returned"],
-//     };
-
-//     if (
-//       !allowedStatusChanges[order.status.toLowerCase()]?.includes(newStatus)
-//     ) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "This status change is not allowed" });
-//     }
-
-//     order.status = newStatus;
-//     await order.save();
-
-//     res.json({ success: true, message: "Order status updated successfully" });
-//   } catch (error) {
-//     console.error("Error updating order status:", error);
-//     res
-//       .status(500)
-//       .json({
-//         success: false,
-//         message: "An error occurred while updating the order status",
-//       });
-//   }
-// };
-
-// const CancelOrder = async (req, res) => {
-//   try {
-//     const { orderId } = req.body;
-//     const order = await orderModel.findById(orderId);
-
-//     if (!order) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Order not found" });
-//     }
-
-//     if (order.status.toLowerCase() !== "pending") {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "This order cannot be cancelled" });
-//     }
-
-//     order.status = "Canceled";
-//     await order.save();
-
-//     res.json({ success: true, message: "Order cancelled successfully" });
-//   } catch (error) {
-//     console.error("Error cancelling order:", error);
-//     res
-//       .status(500)
-//       .json({
-//         success: false,
-//         message: "An error occurred while cancelling the order",
-//       });
-//   }
-// };
-
 const verifyRazorpayPayment = (
   razorpay_order_id,
   razorpay_payment_id,
@@ -333,6 +267,7 @@ const createRazorpayOrder = async (req, res) => {
 
 
 
+
 module.exports = {
   getcheckout,
   placeOrder,
@@ -340,4 +275,5 @@ module.exports = {
   // UpdateOrderStatus,
   // CancelOrder,
   createRazorpayOrder,
+  
 };

@@ -124,7 +124,7 @@ const getDashboard = async (req, res) => {
         const monthlyEarning = monthlyEarningData.length > 0 ? monthlyEarningData[0].total : 0; 
         const totalUser =   await userModel.countDocuments()    
         const pendingOrder = await orderModel.find({status:"Pending"}).countDocuments()  
-        const ConfirmedOrder = await orderModel.find({status:"Confirmed"}).countDocuments()
+        const ConfirmedOrder = await orderModel.find({status:"Delivered"}).countDocuments()
        
         res.render("admin/Dashboard",{
           users:users,

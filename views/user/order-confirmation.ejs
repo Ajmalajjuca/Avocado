@@ -4,88 +4,261 @@
   <%- include('partials/head.ejs') %>
   <style>
     .order-confirmation {
-  padding: 40px 0;
-  background-color: #f8f9fa;
-}
-
-.confirmation-card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 30px;
-}
-
-.confirmation-title {
-  color: #333;
-  font-size: 24px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.order-number {
-  background-color: #e9ecef;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-}
-
-.order-number span {
-  font-weight: bold;
-}
-
-.order-details h3 {
-  font-size: 18px;
-  margin-bottom: 15px;
-  color: #495057;
-}
-
-.order-items {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.order-items th, .order-items td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.order-items thead {
-  background-color: #f1f3f5;
-}
-
-.order-items tfoot {
-  font-weight: bold;
-}
-
-.order-info {
-  margin-top: 20px;
-}
-
-.status-processing {
-  color: #ffc107;
-}
-
-.status-shipped {
-  color: #17a2b8;
-}
-
-.status-delivered {
-  color: #28a745;
-}
-
-.thank-you {
-  text-align: center;
+      padding: 40px 0;
+      background-color: #f8f9fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+    }
+    .confirmation-card {
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      transform: translateY(20px);
+      opacity: 0;
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .confirmation-title {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 30px;
+      text-align: center;
+      position: relative;
+    }
+    .confirmation-title::after {
+      content: '';
+      display: block;
+      width: 50px;
+      height: 3px;
+      background-color: #28a745;
+      margin: 10px auto 0;
+      transition: width 0.3s ease;
+    }
+    .confirmation-card:hover .confirmation-title::after {
+      width: 100px;
+    }
+    .order-number {
+      background-color: #e9ecef;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      transition: background-color 0.3s ease;
+    }
+    .order-number:hover {
+      background-color: #d1ecf1;
+    }
+    .order-number span {
+      font-weight: bold;
+      color: #17a2b8;
+    }
+    .order-details h3 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #495057;
+      position: relative;
+      display: inline-block;
+    }
+    .order-details h3::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: #28a745;
+      transition: width 0.3s ease;
+    }
+    .order-details:hover h3::after {
+      width: 100%;
+    }
+    .order-items {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+    }
+    .order-items th, .order-items td {
+      padding: 15px;
+      text-align: left;
+    }
+    .order-items thead {
+      background-color: #f1f3f5;
+    }
+    .order-items tbody tr {
+      background-color: #ffffff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .order-items tbody tr:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .order-items tfoot {
+      font-weight: bold;
+    }
+    .order-items tfoot tr {
+      border-top: 2px solid #dee2e6;
+    }
+    .order-info {
+      margin-top: 30px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .order-info p {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .order-info p:hover {
+      background-color: #e9ecef;
+    }
+    .status-processing {
+      color: #ffc107;
+    }
+    .status-shipped {
+      color: #17a2b8;
+    }
+    .status-delivered {
+      color: #28a745;
+    }
+    .thank-you {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 24px;
+      color: #28a745;
+      opacity: 0;
+      animation: fadeIn 1s ease-out 0.5s forwards;
+    }
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+    .savings {
+      color: #28a745;
+      font-weight: bold;
+    }
+    .final-total {
+      font-size: 1.2em;
+      color: #dc3545;
+    }
+    .order-actions {
+  display: flex;
+  justify-content: center;
   margin-top: 30px;
-  font-size: 18px;
-  color: #28a745;
+}
+
+.order-actions .btn {
+  margin: 0 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 30px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.order-actions .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  z-index: -1;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.order-actions .btn-primary {
+  color: #fff;
+  background-color: #28a745;
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.order-actions .btn-primary::before {
+  background-color: #218838;
+}
+
+.order-actions .btn-primary:hover {
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(40, 167, 69, 0.5);
+}
+
+.order-actions .btn-primary:hover::before {
+  background-color: #1e7e34;
+}
+
+.order-actions .btn-secondary {
+  color: #6c757d;
+  background-color: #f8f9fa;
+  box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+}
+
+.order-actions .btn-secondary::before {
+  background-color: #e9ecef;
+}
+
+.order-actions .btn-secondary:hover {
+  color: #545b62;
+  box-shadow: 0 8px 20px rgba(108, 117, 125, 0.5);
+}
+
+.order-actions .btn-secondary:hover::before {
+  background-color: #d3d9df;
+}
+
+.order-actions .btn-success {
+  color: #fff;
+  background-color: #17a2b8;
+  box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+}
+
+.order-actions .btn-success::before {
+  background-color: #138496;
+}
+
+.order-actions .btn-success:hover {
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(23, 162, 184, 0.5);
+}
+
+.order-actions .btn-success:hover::before {
+  background-color: #117a8b;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.order-actions .btn:hover {
+  animation: pulse 0.5s ease-in-out;
 }
   </style>
   <title>Order Confirmation</title>
 </head>
 <body>
   <%- include('partials/header.ejs') %>
-
   <section class="order-confirmation">
     <div class="container">
       <div class="confirmation-card">
@@ -142,10 +315,14 @@
         <div class="thank-you">
           <p>Thank you for your order!</p>
         </div>
+        <div class="order-actions">
+          <a href="/shop" class="btn btn-primary">Continue Shopping</a>
+          <a href="/orders" class="btn btn-secondary">My Orders</a>
+          <a href="/invoice/<%= order._id %>" class="btn btn-success">View Invoice</a>
+        </div>
       </div>
     </div>
   </section>
-
   <%- include('partials/footer.ejs') %>
   <%- include('partials/foot.ejs') %>
 </body>

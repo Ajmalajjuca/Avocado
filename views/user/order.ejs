@@ -179,25 +179,75 @@
       .cancel-order-btn:hover {
         background-color: #c82333;
       }
-      /* .modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
-      }
+      .order-tracking-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-      .modal-content {
-        background-color: #fff;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-      } */
+.order-tracking-steps {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+}
+
+.order-tracking-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.order-tracking-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #f1f1f1;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.order-tracking-icon i {
+  color: #6c757d;
+  font-size: 18px;
+  transition: color 0.3s ease;
+}
+
+.order-tracking-label {
+  font-size: 14px;
+  color: #6c757d;
+  transition: color 0.3s ease;
+}
+
+.order-tracking-progress {
+  width: 100%;
+  height: 4px;
+  background-color: #f1f1f1;
+  margin-top: 16px;
+  position: relative;
+}
+
+.order-tracking-progress-bar {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.order-tracking-step.active .order-tracking-icon {
+  background-color: #007bff;
+}
+
+.order-tracking-step.active .order-tracking-icon i {
+  color: #fff;
+}
+
+.order-tracking-step.active .order-tracking-label {
+  color: #007bff;
+}
 
       button {
         margin-top: 15px;
@@ -230,12 +280,15 @@
               Total: ₹<%= order.amount.toFixed(2) %>
             </div>
             <div>
+              <a href="/invoice/<%= order._id %>" class="view-details-btn">View Invoice</a>
+
               <a
                 href="javascript:void(0);"
                 class="view-details-btn"
                 onclick="showOrderDetails('<%= order._id %>')"
                 >View Details</a
               >
+
 
               <% if (['pending', 'intransit',
               'shipped'].includes(order.status.toLowerCase())) { %>
@@ -253,37 +306,14 @@
               >
                 Return Order
               </button>
+              <a href="/invoice/<%= order._id %>" class="btn btn-success">View Invoice</a>
+
               <% } %>
             </div>
           </div>
-          <div id="details-<%= order._id %>" class="order-details">
-            <h4>Order Items</h4>
-            <ul class="item-list">
-              <% order.items.forEach(item => { %> <% if (item.productId) { %>
-              <li>
-                <%= item.productId.name %> - Quantity: <%= item.quantity %>
-              </li>
-              <% } else { %>
-              <li>Product not available - Quantity: <%= item.quantity %></li>
-              <% } %> <% }) %>
-            </ul>
-            <div class="order-address">
-              <h4>Delivery Address</h4>
-              <% if (order.address) { %>
-              <p>
-                <%= order.address.housename %>, <%= order.address.street %>, <%=
-                order.address.city %>, <%= order.address.state %>, <%=
-                order.address.country %>, <%= order.address.pincode %>
-              </p>
-              <% } else { %>
-              <p>Not provided</p>
-              <% } %>
-            </div>
-            <div class="payment-method">
-              <h4>Payment Method</h4>
-              <p><%= order.payment %></p>
-            </div>
-          </div>
+
+         
+          
         </div>
         <% }) %>
       </div>
@@ -322,14 +352,17 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Close
-            </button>
-          </div>
+  <button
+    type="button"
+    class="btn btn-secondary"
+    data-bs-dismiss="modal"
+  >
+    Close
+  </button>
+  
+  
+
+</div>
         </div>
       </div>
     </div>
@@ -348,90 +381,149 @@
                 document.getElementById("modalOrderDetails");
               modalOrderDetails.innerHTML = `
           <div class="card border-0 shadow">
-            <div class="card-header bg-primary text-white py-3">
-              <h5 class="mb-0 fw-bold">Order #${order.orderId}</h5>
-            </div>
-            <div class="card-body p-4">
-              <div class="row mb-4">
-                <div class="col-md-6">
-                  <h6 class="text-muted mb-3">Customer Details</h6>
-                  <p class="mb-1"><i class="fas fa-user me-2"></i> <strong>${
-                    order.address.name
-                  }</strong></p>
-                  <p class="mb-1"><i class="fas fa-envelope me-2"></i> ${
-                    order.address.email
-                  }</p>
-                  <h6 class="text-muted mt-3 mb-2">Shipping Address</h6>
-                  <p class="mb-1"><i class="fas fa-home me-2"></i> ${
-                    order.address.housename
-                  }</p>
-                  <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i> ${
-                    order.address.street
-                  }, ${order.address.city}, ${order.address.state}, ${
-                order.address.country
-              } - ${order.address.pincode}</p>
+  <div class="card-header bg-primary text-white py-3">
+    <h5 class="mb-0 fw-bold">Order #${order.orderId}</h5>
+  </div>
+  <div class="card-body p-4">
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <h6 class="text-muted mb-3">Customer Details</h6>
+        <p class="mb-1"><i class="fas fa-user me-2"></i> <strong>${order.address.name}</strong></p>
+        <p class="mb-1"><i class="fas fa-envelope me-2"></i> ${order.address.email}</p>
+        <h6 class="text-muted mt-3 mb-2">Shipping Address</h6>
+        <p class="mb-1"><i class="fas fa-home me-2"></i> ${order.address.housename}</p>
+        <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i> ${order.address.street}, ${order.address.city}, ${order.address.state}, ${order.address.country} - ${order.address.pincode}</p>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <h6 class="text-muted mb-3">Order Summary</h6>
+        <p class="mb-1"><strong>Total Amount:</strong> <span class="fs-5">₹${order.amount}</span></p>
+        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-${getStatusColor(order.status)} px-3 py-2">${order.status}</span></p>
+        <p class="mb-1"><strong>Payment Method:</strong> <span class="fs-5">${order.payment}</span></p>
+      </div>
+    </div>
+    <h6 class="mb-3 text-primary">Order Items</h6>
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Product</th>
+            <th scope="col" class="text-center">Quantity</th>
+            <th scope="col" class="text-end">Price</th>
+            <th scope="col" class="text-end">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${order.items
+            .map(
+              (item) => `
+            <tr>
+              <td>
+                <div class="d-flex align-items-center">
+                  <img src="${item.productId.images[0]}" alt="${item.productId.name}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                  <div>
+                    <h6 class="mb-0">${item.productId.name}</h6>
+                    <small class="text-muted">
+                      ${(() => {
+                        if (item.productId && item.productId.category) {
+                          return item.productId.category.name || "N/A (Name not found)";
+                        }
+                        return "N/A (Category not found)";
+                      })()}
+                    </small>
+                  </div>
                 </div>
-                <div class="col-md-6 text-md-end">
-                  <h6 class="text-muted mb-3">Order Summary</h6>
-                  <p class="mb-1"><strong>Total Amount:</strong> <span class="fs-5">₹${
-                    order.amount
-                  }</span></p>
-                  <p class="mb-1"><strong>Status:</strong> <span class="badge bg-${getStatusColor(
-                    order.status
-                  )} px-3 py-2">${order.status}</span></p>
-                </div>
-              </div>
-              <h6 class="mb-3 text-primary">Order Items</h6>
-              <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead class="table-light">
-                    <tr>
-                      <th scope="col">Product</th>
-                      <th scope="col" class="text-center">Quantity</th>
-                      <th scope="col" class="text-end">Price</th>
-                      <th scope="col" class="text-end">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${order.items
-                      .map(
-                        (item) => `
-                      <tr>
-                        <td>
-                          <div class="d-flex align-items-center">
-                            <img src="${item.productId.images[0]}" alt="${
-                          item.productId.name
-                        }" 
-                                 class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                            <div>
-                              <h6 class="mb-0">${item.productId.name}</h6>
-                              <small class="text-muted">${
-                                item.productId.category || "N/A"
-                              }</small>
-                            </div>
-                          </div>
-                        </td>
-                        <td class="text-center">${item.quantity}</td>
-                        <td class="text-end">₹${item.price.toFixed(2)}</td>
-                        <td class="text-end">₹${(
-                          item.quantity * item.price
-                        ).toFixed(2)}</td>
-                      </tr>
-                    `
-                      )
-                      .join("")}
-                  </tbody>
-                  <tfoot>
-                    <tr class="fw-bold">
-                      <td colspan="3" class="text-end">Total:</td>
-                      <td class="text-end">₹${order.amount.toFixed(2)}</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </div>
+              </td>
+              <td class="text-center">${item.quantity}</td>
+              <td class="text-end">₹${item.price.toFixed(2)}</td>
+              <td class="text-end">₹${(item.quantity * item.price).toFixed(2)}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+        <tfoot>
+          <tr class="fw-bold">
+            <td colspan="3" class="text-end">Total:</td>
+            <td class="text-end">₹${order.amount.toFixed(2)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+<div class="mt-4">
+  <h6 class="text-primary mb-3">Order Tracking</h6>
+  <div class="order-tracking-container">
+    <div class="order-tracking-steps">
+      <div class="order-tracking-step">
+        <div class="order-tracking-icon">
+          <i class="fas fa-check"></i>
+        </div>
+        <div class="order-tracking-label">Order Placed</div>
+      </div>
+      <div class="order-tracking-step">
+        <div class="order-tracking-icon">
+          <i class="fas fa-truck"></i>
+        </div>
+        <div class="order-tracking-label">Shipped</div>
+      </div>
+      <div class="order-tracking-step">
+        <div class="order-tracking-icon">
+          <i class="fas fa-shipping-fast"></i>
+        </div>
+        <div class="order-tracking-label">In-transit</div>
+      </div>
+      <div class="order-tracking-step">
+        <div class="order-tracking-icon">
+          <i class="fas fa-home"></i>
+        </div>
+        <div class="order-tracking-label">Delivered</div>
+      </div>
+    </div>
+    <div class="order-tracking-progress">
+      <div id="progressBar" class="order-tracking-progress-bar bg-primary" style="width: 0%;"></div>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+          
         `;
+        function updateOrderTracking(status) {
+  const progressBar = document.getElementById('progressBar');
+  const orderTrackingSteps = document.querySelectorAll('.order-tracking-step');
+
+  // Update the progress bar
+  switch (status) {
+    case 'pending':
+      progressBar.style.width = '25%';
+      break;
+    case 'shipped':
+      progressBar.style.width = '50%';
+      break;
+    case 'intransit':
+      progressBar.style.width = '75%';
+      break;
+    case 'delivered':
+      progressBar.style.width = '100%';
+      break;
+    case 'canceled':
+      progressBar.style.width = '100%';
+      progressBar.classList.add('bg-danger');
+      break;
+    default:
+      progressBar.style.width = '0%';
+  }
+
+  // Update the order tracking steps
+  orderTrackingSteps.forEach((step, index) => {
+    step.classList.remove('active');
+    if (index <= Math.floor((progressBar.offsetWidth / progressBar.parentElement.offsetWidth) * 4)) {
+      step.classList.add('active');
+    }
+  });
+}
+
+updateOrderTracking(order.status.toLowerCase());
+
               var myModal = new bootstrap.Modal(
                 document.getElementById("orderDetailsModal")
               );
@@ -589,6 +681,8 @@ function confirmReturnOrder(orderId) {
     }
   });
 }
+
+
 </script>
   </body>
 </html>

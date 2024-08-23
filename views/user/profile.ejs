@@ -2,28 +2,35 @@
 <html lang="en">
 <head>
   <%- include('partials/head'); %>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 </head>
 <body>
   <%- include('partials/header'); %>
 
   <style>
-    
   /* Custom CSS */
   .profile-container {
-    max-width: 600px;
+    max-width: 800px;
     margin: auto;
     padding: 20px;
   }
   .btn-full-block {
     display: block;
     width: 100%;
+    transition: all 0.3s ease;
+  }
+  .btn-full-block:hover {
+    transform: scale(1.05);
   }
   .card-body {
-    transition: box-shadow 0.3s, transform 0.3s;
+    transition: all 0.3s ease;
+    background: linear-gradient(145deg, #f3f3f3, #ffffff);
+    border-radius: 15px;
+    box-shadow: 5px 5px 15px #d1d1d1, -5px -5px 15px #ffffff;
   }
   .card-body:hover {
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
-    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-10px);
   }
   .user-info {
     display: flex;
@@ -31,33 +38,45 @@
     align-items: center;
   }
   .info-item {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    font-size: 1.2em;
   }
   .info-item strong {
     font-weight: bold;
     margin-right: 10px;
+    color: #2E8B57;
   }
   .info-item span {
-    color: #555;
+    color: #333;
   }
   .user {
-    font-size: x-large;
-    font-family: Arial, Helvetica, sans-serif;
-    color: black;
-  }
-  .user span {
-    color: rgb(0, 0, 0);
-    letter-spacing: 1px;
+    font-size: 2em;
+    font-family: 'Arial', sans-serif;
+    color: #2E8B57;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
   }
   .btn {
     background-color: #2E8B57;
     font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+  }
+  .btn:hover {
+    background-color: #3cb371;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.4);
+  }
+  .img-fluid {
+    transition: all 0.3s ease;
+  }
+  .img-fluid:hover {
+    transform: scale(1.1);
   }
   </style>
 
-  <div class="container profile-container">
+  <div class="container profile-container animate__animated animate__fadeIn">
     <div class="row">
-      <div class="col-md-12 border border-3 text-center mb-4 p-4 user">
+      <div class="col-md-12 border border-3 text-center mb-4 p-4 user animate__animated animate__bounceInDown">
         <h2 class="mb-4">User Information</h2>
         <div class="user-info">
           <div class="info-item">
@@ -68,72 +87,38 @@
             <strong>Email:</strong>
             <span><%= email %></span>
           </div>
+          <div class="info-item">
+            <strong>Referral Code:</strong>
+            <span><%= referralCode %></span> <!-- Displaying the referral code -->
+          </div>
         </div>
       </div>
       <div class="col-md-12">
-        <h2 class="text-center">Take Actions</h2>
+        <h2 class="text-center mb-4">Take Actions</h2>
         <div class="row mt-4">
-          <div class="col-md-4">
-            <div class="card mb-3">
-              <div class="card-body">
-                <img src="/user/img/order image.webp" class="img-fluid" alt="order-img">
-                <a href="/orders" class="btn btn-success btn-full-block">
-                  My Orders
-                </a>
+          <% const actions = [
+            { title: 'My Orders', image: '/user/img/order image.webp', link: '/orders' },
+            { title: 'Reset Pass', image: '/user/img/reset password.avif', link: '/ChangePass' },
+            { title: 'Coupons', image: '/user/img/couponse 2.png', link: '/coupons' },
+            { title: 'Wallet', image: '/user/img/wallet image.png', link: '/wallet' },
+            { title: 'Address', image: '/user/img/address.webp', link: '/address' },
+            { title: 'Log out', image: '/user/img/logout image.webp', link: '/logout', isButton: true }
+          ] %>
+          
+          <% actions.forEach((action, index) => { %>
+            <div class="col-md-4 animate__animated animate__fadeInUp" style="animation-delay: <%= index * 0.1 %>s">
+              <div class="card mb-3">
+                <div class="card-body">
+                  <img src="<%= action.image %>" class="img-fluid mb-3" alt="<%= action.title %>-img">
+                  <% if (action.isButton) { %>
+                    <button class="btn btn-success btn-full-block" onclick="location.href='<%= action.link %>'"><%= action.title %></button>
+                  <% } else { %>
+                    <a href="<%= action.link %>" class="btn btn-success btn-full-block"><%= action.title %></a>
+                  <% } %>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card mb-3">
-              <div class="card-body">
-                <img src="/user/img/reset password.avif" class="img-fluid" alt="resetpass-img">
-                <a href="/ChangePass" class="btn btn-success btn-full-block">
-                  Reset Pass
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card mb-3">
-              <div class="card-body">
-                <img src="/user/img/couponse 2.png" class="img-fluid" alt="coupen-img">
-                <a href="/coupons" class="btn btn-success btn-full-block">
-                  Coupons
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="card mb-3">
-              <div class="card-body">
-                <img src="/user/img/wallet image.png" class="img-fluid" alt="wallet-img">
-                <a href="/wallet" class="btn btn-success mt-3 btn-full-block">
-                  Wallet
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card mb-3">
-              <div class="card-body">
-                <img src="/user/img/address.webp" class="img-fluid" alt="address-img">
-                <a href="/address" class="btn btn-success mt-3 btn-full-block">
-                  Address
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body">
-                <img src="/user/img/logout image.webp" class="img-fluid" alt="logout-img">
-                <button class="btn btn-success mt-3 btn-full-block" onclick="location.href='/logout'">Log out</button>
-
-              </div>
-            </div>
-          </div>
+          <% }) %>
         </div>
       </div>
     </div>
@@ -141,5 +126,15 @@
 
   <%- include('partials/footer') %>
   <%- include('partials/foot') %>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+  <script>
+    gsap.from(".card", {
+      duration: 1,
+      y: 50,
+      opacity: 0,
+      stagger: 0.2,
+      ease: "power3.out"
+    });
+  </script>
 </body>
 </html>

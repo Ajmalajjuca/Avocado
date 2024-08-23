@@ -8,6 +8,7 @@ const productModel = require("../../models/productModel")
 const crypto = require('crypto');
 const address = require('../../models/addressModel')
 const offerModel = require('../../models/offersModel');
+const transactionModel = require('../../models/transactionModel')
 const {
   isValidName,
   isValidPassword,
@@ -83,7 +84,8 @@ const getProfile = async (req, res) => {
   try {
     if (req.session.isAuth) {
       const user = await userModal.findOne({ email: req.session.user.email });
-      res.render("user/profile", { user: user.username,email:user.email });
+      
+      res.render("user/profile", { user: user.username,email:user.email,referralCode: user.referralCode || 'Not available'  });
     } else {
       res.redirect('/login');
     }
@@ -312,8 +314,12 @@ const sendmail = async (email, otp, user) => {
   }
 };
 
+function generateReferralCode() {
+  return crypto.randomBytes(4).toString('hex');
+}
+
 const UsersignupPost = async (req, res) => {
-  const { username, email, password, cpassword } = req.body;
+  const { username, email, password, cpassword, referralCode } = req.body;
 
   try {
     // Validate input fields
@@ -337,7 +343,7 @@ const UsersignupPost = async (req, res) => {
     // Check if email already exists
     const existingEmail = await userModal.findOne({ email: email });
     if (existingEmail) {
-      req.flash("error", "Email alredy existed");
+      req.flash("error", "Email already existed");
       return res.redirect("/signup");
     }
 
@@ -345,13 +351,22 @@ const UsersignupPost = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    req.session.user = {
+    const newReferralCode = generateReferralCode();
+
+    const newUserData = {
       username: username,
       email: email,
       password: hashedPassword,
+      referralCode: newReferralCode,
+      balance: 0,
+      referredBy: referralCode || null
     };
+
+    // Store user data in session
+    req.session.user = newUserData;
     req.session.signup = true;
 
+    // Generate and send OTP
     const otp = generatorotp();
     const currTime = Date.now();
     const expTime = currTime + 60 * 1000;
@@ -362,11 +377,12 @@ const UsersignupPost = async (req, res) => {
       { upsert: true }
     );
     await sendmail(email, otp, username);
-    // Redirect to login page or show success message
+
+    // Redirect to OTP verification page
     return res.redirect("/verify-otp");
   } catch (error) {
-    console.error("Error signing up user:", error);
-    req.flash("error", "Unexpected error occured");
+    console.error("Error in signup process:", error);
+    req.flash("error", "Unexpected error occurred");
     return res.redirect("/signup");
   }
 };
@@ -430,17 +446,54 @@ const verifyotp = async (req, res) => {
     if (Intotp === storedOtp && expiry.getTime() >= Date.now()) {
       if (req.session.signup) {
         const newUserData = req.session.user;
-        delete newUserData.id;
 
+        // Create and save the new user
         const newUser = await userModal.create(newUserData);
 
-        req.session.userId = newUser.id;
+        req.session.userId = newUser._id;
         req.session.isAuth = true;
         req.session.signup = false;
 
+        // Handle referral bonus if applicable
+        if (newUserData.referredBy) {
+          const referrer = await userModal.findOne({ referralCode: newUserData.referredBy });
+          if (referrer) {
+            const bonusAmount = 250;
+
+            // Update new user's balance
+            newUser.balance = bonusAmount;
+            await newUser.save();
+
+            // Update referrer's balance
+            await userModal.updateOne({ _id: referrer._id }, { $inc: { balance: bonusAmount } });
+
+            // Create transaction for new user
+            const newUserTransaction = new transactionModel({
+              userId: newUser._id,
+              amount: bonusAmount,
+              type: "credit",
+              description: `Congratulations! Referral Bonus Added. Referred by ${referrer.username}`,
+              date: new Date(),
+              balance: bonusAmount,
+            });
+            await newUserTransaction.save();
+
+            // Create transaction for referrer
+            const referrerTransaction = new transactionModel({
+              userId: referrer._id,
+              amount: bonusAmount,
+              type: "credit",
+              description: `Congratulations! Referral Bonus Added. Referred ${newUser.username}`,
+              date: new Date(),
+              balance: referrer.balance + bonusAmount,
+            });
+            await referrerTransaction.save();
+          }
+        }
+
         return res.status(200).json({ success: true });
       } else {
-        return res.status(400).json({ success: false, message: "Signin failed" });
+        return res.status(400).json({ success: false, message: "Signup failed" });
       }
     } else {
       return res.status(400).json({ success: false, message: "Invalid OTP or expired" });
@@ -450,8 +503,6 @@ const verifyotp = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
-
 
 const forgotPassword = async (req, res) => {
   try {

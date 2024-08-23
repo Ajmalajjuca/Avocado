@@ -1,6 +1,7 @@
 const orderModel = require('../../models/orderModel')
 const userModel = require("../../models/userModel");
-const transactionModel = require('../../models/transactionModel')
+const transactionModel = require('../../models/transactionModel');
+const productModel = require('../../models/productModel');
 
 
 
@@ -17,12 +18,25 @@ const getUserOrders = async (req, res) => {
           const orders = await orderModel.find({ userId: user._id })
           .populate({
             path: 'items.productId',
-            select: 'name' // Adjust to include fields you need from Product schema
-          })
+          select: 'name category images',
+          populate: {
+            path: 'category',
+            model: 'categories',  // Make sure this matches your category model name
+            select: 'name'// Select the category name
+            }
+        })
           .sort({ createdAt: -1 }) // Sorts by createdAt field in descending order (most recent first)
           .exec();
           
-          res.render('user/order', { orders, user: user.username });
+          
+
+          
+          
+          
+        if (orders.length > 0 && orders[0].items.length > 0) {
+        }
+          
+          res.render('user/order', { orders, user: user.username, });
       } else {
           res.redirect('/login'); 
       }
