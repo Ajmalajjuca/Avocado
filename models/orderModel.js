@@ -26,8 +26,15 @@ const schema = new mongoose.Schema({
         price: {
             type: Number,
             required: true
-        }
-    }],
+        },
+        isCancelled: {
+            type: Boolean,
+            default: false
+          },
+          cancelReason: {
+            type: String,
+          }
+        }],
     wallet: {
         type: Number
     },
@@ -38,9 +45,9 @@ const schema = new mongoose.Schema({
     },
     paymentstatus: {
         type: String,
-        default: 'Pending',
-        required: true
-    },
+        enum: ['Pending', 'Failed', 'Completed'],
+        default: 'Pending'
+      },
     address: {
         type: {
             name: String,

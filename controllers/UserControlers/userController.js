@@ -80,6 +80,21 @@ const getHome = async (req, res) => {
 };
 
 
+const getabout = async (req,res)=>{
+  try {
+    if (req.session.isAuth) {
+      const user = await userModal.findOne({ email: req.session.user.email });
+
+      res.render("user/about", { user: user.username });
+    } else {
+      res.render("user/about");
+    }
+  } catch (err) {
+    console.error("rendering error:", err);
+    res.render("user/404Error");
+  }
+};
+
 const getProfile = async (req, res) => {
   try {
     if (req.session.isAuth) {
@@ -200,8 +215,9 @@ const getContact = async (req, res) => {
   try {
     if (req.session.isAuth) {
       const user = await userModal.findOne({ email: req.session.user.email });
+      const categories = await categoriesModel.find({ status: true });
 
-      res.render("user/contact", { user: user.username });
+      res.render("user/contact", { user: user.username,categories });
     } else {
       res.render("user/contact");
     }
@@ -641,6 +657,61 @@ const googleAuthCallback = (req, res) => {
   res.redirect('/verify-otp');
 };
 
+
+// Create a transporter using SMTP
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // Use TLS
+  auth: {
+    user: process.env.SMTP_USER, // your SMTP username
+    pass: process.env.SMTP_PASS,  // Your Gmail app password
+  }
+});
+
+const  submitContact =  async (req, res) => {
+  try {
+    console.log('Received data:', req.body); // Log received data for debugging
+
+    const { name, email, message } = req.body;
+
+    // Check if required fields are present
+    if (!name || !email || !message) {
+      return res.status(400).json({ success: false, message: 'Please provide name, email, and message.' });
+    }
+
+    // Compose email
+    const mailOptions = {
+      from: '"Your Website Contact Form" <your-email@gmail.com>',
+      to: 'avocado.ajmal@gmail.com', // Your email where you want to receive messages
+      subject: 'New Contact Form Submission',
+      text: `
+        Name: ${name}
+        Email: ${email}
+        Message: ${message}
+      `,
+      html: `
+        <h3>New Contact Form Submission</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong> ${message}</p>
+      `
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    // Send success response
+    res.json({ success: true, message: 'Your message has been sent successfully!' });
+
+  } catch (error) {
+    console.error('Error in submitContact:', error);
+    res.status(500).json({ success: false, message: 'An error occurred while sending your message. Please try again later.' });
+  }
+};
+
+
+
 module.exports = {
   getHome,
   getShop,
@@ -661,4 +732,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   getVerifyotp,
+  submitContact,
+  getabout
 };

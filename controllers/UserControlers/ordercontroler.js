@@ -7,42 +7,48 @@ const productModel = require('../../models/productModel');
 
 const getUserOrders = async (req, res) => {
   try {
-      if (req.session.isAuth) {
-          const user = await userModel.findOne({ email: req.session.user.email });
-          
-          if (!user) {
-              return res.status(404).send('User not found');
-          }
-          
-          // Populate the product details in order items and address if needed
-          const orders = await orderModel.find({ userId: user._id })
-          .populate({
-            path: 'items.productId',
+    if (req.session.isAuth) {
+      const user = await userModel.findOne({ email: req.session.user.email });
+      
+      if (!user) {
+        return res.status(404).send('User not found');
+      }
+      
+      const orders = await orderModel.find({ userId: user._id })
+        .populate({
+          path: 'items.productId',
           select: 'name category images',
           populate: {
             path: 'category',
-            model: 'categories',  // Make sure this matches your category model name
-            select: 'name'// Select the category name
-            }
+            model: 'categories',
+            select: 'name'
+          }
         })
-          .sort({ createdAt: -1 }) // Sorts by createdAt field in descending order (most recent first)
-          .exec();
-          
-          
-
-          
-          
-          
-        if (orders.length > 0 && orders[0].items.length > 0) {
+        .sort({ createdAt: -1 })
+        .exec();
+      
+      // Check if retry is still possible for pending payments
+      orders.forEach(order => {
+        if (order.paymentstatus === 'Pending' && order.paymentRetryDeadline > new Date()) {
+          order.canRetryPayment = true;
+        } else {
+          order.canRetryPayment = false;
         }
-          
-          res.render('user/order', { orders, user: user.username, });
-      } else {
-          res.redirect('/login'); 
-      }
+      });
+      
+      res.render('user/order', { 
+        orders, 
+  user: user.username,
+  userEmail: user.email,
+  userMobile: user.mobile,
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID
+      });
+    } else {
+      res.redirect('/login'); 
+    }
   } catch (error) {
-      console.error('Error fetching user orders:', error); 
-      res.status(500).send('Server Error'); 
+    console.error('Error fetching user orders:', error); 
+    res.status(500).send('Server Error'); 
   }
 };
 
@@ -82,12 +88,22 @@ const postOrderCancel  = async (req, res) => {
         return res.status(400).json({ success: false, message: "This order cannot be cancelled" });
       }
   
+
+      for (let item of order.items) {
+        const product = await productModel.findById(item.productId);
+        if (product) {
+          product.stock += item.quantity;
+          await product.save();
+        }
+      }
+
+
       // Update the order status
       order.status = "Canceled";
       order.return.push({ reason, status: 'Pending' });
       await order.save();
       
-      if (order.paymentstatus === "Confirmed") {
+      if (order.paymentstatus === "Completed") {
         const user = await userModel.findById(order.userId);
         user.balance += order.amount;
         await user.save();
@@ -126,10 +142,19 @@ const postOrderCancel  = async (req, res) => {
   
       // Update the order status
       order.status = "Returned";
+      
       order.returnReason = reason;
+      // Restore stock for each product in the order
+    for (const item of order.items) {
+      const product = await productModel.findById(item.productId);
+      if (product) {
+        product.stock += item.quantity; // Restore the stock
+        await product.save();
+      }
+    }
       await order.save();
 
-      if (order.paymentstatus === "Confirmed") {
+      if (order.paymentstatus === "Completed") {
         const user = await userModel.findById(order.userId);
         user.balance += order.amount;
         await user.save();
@@ -152,4 +177,115 @@ const postOrderCancel  = async (req, res) => {
     }
   };
 
-  module.exports = { getOrderid,postOrderCancel,postOrderReturn,getUserOrders };
+  const retryPayment = async (req, res) => {
+    try {
+      const orderId = req.params.orderId;
+      const order = await orderModel.findById(orderId);
+  
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+  
+      if (order.paymentstatus === 'Completed') {
+        return res.status(400).json({ success: false, message: 'Payment already completed' });
+      }
+  
+      // Create a new Razorpay order
+      const razorpayOrder = await razorpay.orders.create({
+        amount: order.amount * 100, // Razorpay expects amount in paise
+        currency: 'INR',
+        receipt: order._id.toString()
+      });
+  
+      res.json({
+        success: true,
+        orderId: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency
+      });
+    } catch (error) {
+      console.error('Error retrying payment:', error);
+      res.status(500).json({ success: false, message: 'An error occurred while retrying payment' });
+    }
+  };
+  
+
+  const verifyPayment = async (req, res) => {
+    try {
+      const { orderId, paymentId, razorpayOrderId, signature } = req.body;
+  
+      const isPaymentVerified = verifyRazorpayPayment(razorpayOrderId, paymentId, signature);
+  
+      if (isPaymentVerified) {
+        const order = await orderModel.findById(orderId);
+        order.paymentstatus = 'Completed';
+        order.razorpay_payment_id = paymentId;
+        order.razorpay_order_id = razorpayOrderId;
+        await order.save();
+  
+        res.json({ success: true, message: 'Payment verified successfully' });
+      } else {
+        res.status(400).json({ success: false, message: 'Payment verification failed' });
+      }
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      res.status(500).json({ success: false, message: 'An error occurred while verifying payment' });
+    }
+  };
+  const cancelproduct =  async (req, res) => {
+    try {
+      const { productId, orderId, reason } = req.body;
+  
+      // Find the order containing the product
+      const order = await orderModel.findOne({ _id: orderId, 'items.productId': productId });
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'Order or product not found' });
+      }
+  
+      // Find the item to cancel
+      const item = order.items.find(item => item.productId.toString() === productId);
+if (item && !item.isCancelled) {
+  const product = await productModel.findById(productId);
+      if (product) {
+        product.stock += item.quantity; // Restore the stock
+        await product.save();
+      }
+
+      item.isCancelled = true;
+      item.cancelReason = reason;
+        
+        // Calculate the refund amount
+        const refundAmount = item.price * item.quantity;
+  
+        // Update the user's balance
+        const user = await userModel.findById(order.userId);
+        user.balance += refundAmount;
+  
+        // Update the total order amount
+        order.amount -= refundAmount;
+  
+        // Create a transaction record
+        const transaction = new transactionModel({
+          userId: user._id,
+          amount: refundAmount,
+          type: 'credit',
+          description: `Refund for product cancellation `,
+          balance: user.balance
+        });
+  
+        // Save the updated user, order, and transaction
+        await user.save();
+        await order.save();
+        await transaction.save();
+  
+        res.json({ success: true, message: 'Product cancelled and order amount updated.' });
+      } else {
+        res.status(400).json({ success: false, message: 'Product already cancelled or not found' });
+      }
+    } catch (error) {
+      console.error('Error cancelling product:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+  
+  module.exports = { getOrderid,postOrderCancel,postOrderReturn,getUserOrders,retryPayment,verifyPayment ,cancelproduct};

@@ -37,6 +37,40 @@
     width: 150px;
     height: 150px;
   }
+  .product__details__price .discounted-price {
+    font-size: 30px;
+    font-weight: 700;
+    color: #dd2222;
+    margin-right: 10px;
+}
+
+.product__details__price .original-price {
+    font-size: 20px;
+    color: #b2b2b2;
+    text-decoration: line-through;
+    margin-right: 10px;
+}
+
+.product__details__price .discount-percent {
+    font-size: 14px;
+    color: #ffffff;
+    background: #dd2222;
+    padding: 2px 5px;
+    border-radius: 2px;
+}
+    .swal2-popup.swal2-toast {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    .swal2-popup.swal2-toast .swal2-title {
+        margin: 0.5rem 0;
+        font-size: 1rem;
+    }
+
+    
+    .heart-icon .icon_heart {
+        color: #ff0000; /* or any color you prefer for the filled heart */
+    }
 
     </style>
 </head>
@@ -65,7 +99,7 @@
                               <i class="fa fa-phone"></i>
                           </div>
                           <div class="hero__search__phone__text">
-                              <h5>+65 11.188.888</h5>
+                              <h5>+91 9019345336</h5>
                               <span>support 24/7 time</span>
                           </div>
                       </div>
@@ -136,21 +170,30 @@
                         <% } %>
                         <span>(reviews)</span>
                     </div>
-                    <div class="product__details__price">₹ <%= product.price %></div>
+                    <div class="product__details__price">
+                        <% if (product.offer) { %>
+                            <span class="discounted-price">₹<%= product.offerPrice.toFixed(2) %></span>
+                            <span class="original-price">₹<%= product.price.toFixed(2) %></span>
+                            <span class="discount-percent">-<%= product.offer.discount %>%</span>
+                        <% } else { %>
+                            ₹<%= product.price.toFixed(2) %>
+                        <% } %>
+                    </div>
                     <p><%= product.description %></p>
                     <div class="product__details__quantity">
                         <div class="quantity">
                             
                                 <span class="dec qtybtn" onclick="changeQuantity('<%= product._id %>', -1)">-</span>
                                 <div class="pro-qty">
-                                <input type="text" id="quantity-<%= product._id %>" value="1" readonly data-stock="<%= product.stock %>">
-                            </div>
+                                    <input type="text" id="quantity-<%= product._id %>" value="1" readonly data-stock="<%= product.stock %>">                            </div>
                                 <span class="inc qtybtn" onclick="changeQuantity('<%= product._id %>', 1)">+</span>
                             
                         </div>
                     </div>
                     <a href="javascript:void(0);" onclick="addToCart('<%= product._id %>')" class="primary-btn">ADD TO CART</a>
-                    <a href="#" class="heart-icon"><span class="icon_heart_alt"></span></a>
+                    <a href="javascript:void(0);" class="heart-icon" onclick="toggleWishlist('<%= product._id %>')">
+                        <span id="wishlist-icon-<%= product._id %>" class="<%= product.isWishlisted ? 'icon_heart' : 'icon_heart_alt' %>"></span>
+                    </a>
                     <ul>
                         <li><b>Availability</b> 
                             <span class="<%= product.stock === 0 ? 'out-of-stock' : product.stock < 5 ? 'limited-stock' : 'in-stock' %>">
@@ -276,6 +319,7 @@
 <script src="/user/js/owl.carousel.min.js"></script>
 <script src="/user/js/main.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script src="/user/magiczoomplus/magiczoomplus.js"></script>
 <script>
 </script>
@@ -301,22 +345,25 @@ function changeQuantity(productId, change) {
     // Ensure quantity doesn't go below 1 or above the available stock
     newQuantity = Math.max(1, Math.min(newQuantity, maxStock));
     
+    if (newQuantity === maxStock) {
+        showToast('info', 'Maximum stock reached');
+    } else if (newQuantity === 1 && change < 0) {
+        showToast('info', 'Minimum quantity reached');
+    }
+    
     quantityInput.value = newQuantity;
 
     // Update the UI to reflect the new quantity
     updateQuantityUI(productId, newQuantity, maxStock);
 }
+
 async function addToCart(productId) {
     const quantityInput = document.getElementById(`quantity-${productId}`);
     const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
     const maxStock = quantityInput ? parseInt(quantityInput.dataset.stock) : Infinity;
 
     if (quantity > maxStock) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: `Sorry, only ${maxStock} items are available in stock.`
-        });
+        showToast('error', `Sorry, only ${maxStock} items are available in stock.`);
         return;
     }
 
@@ -337,24 +384,17 @@ async function addToCart(productId) {
         const data = await response.json();
 
         if (response.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: data.message
-            });
+            showToast('success', data.message);
             updateCartCount(data.cartItemCount);
         } else {
             throw new Error(data.message || 'Failed to add product to cart');
         }
     } catch (error) {
         console.error('Error adding product to cart:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: error.message || 'Failed to add product to cart'
-        });
+        showToast('error', error.message || 'Failed to add product to cart');
     }
 }
+
 function updateCartCount(count) {
   const cartCountElement = document.getElementById('cart-count');
   if (cartCountElement) {
@@ -431,7 +471,80 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+function showToast(icon, text) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
 
+    Toast.fire({
+        icon: icon,
+        title: text
+    });
+}
+
+async function toggleWishlist(productId) {
+    try {
+        const response = await fetch('/wishlist/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId })
+        });
+
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const data = await response.json();
+
+        if (response.ok) {
+            const wishlistIcon = document.getElementById(`wishlist-icon-${productId}`);
+            if (data.isWishlisted) {
+                wishlistIcon.classList.remove('icon_heart_alt');
+                wishlistIcon.classList.add('icon_heart');
+                showToast('success', 'Product added to wishlist');
+            } else {
+                wishlistIcon.classList.remove('icon_heart');
+                wishlistIcon.classList.add('icon_heart_alt');
+                showToast('success', 'Product removed from wishlist');
+            }
+        } else {
+            throw new Error(data.message || 'Failed to update wishlist');
+        }
+    } catch (error) {
+        console.error('Error updating wishlist:', error);
+        showToast('error', error.message || 'Failed to update wishlist');
+    }
+}
+
+function showToast(icon, text) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
+
+    Toast.fire({
+        icon: icon,
+        title: text
+    });
+}
 </script>
    
   </body>

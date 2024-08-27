@@ -46,6 +46,7 @@ router.get("/admin/logout",adminControl.getLogout)
 router.post('/generate-report',adminControl.generateReport) 
 router.get('/report',adminControl.report);
 router.get('/download-report',adminControl.downloadReport);
+router.get('/sales-data', adminControl.getSalesData);
 
 // router.get("/orders", adminControl.getOrders);
 

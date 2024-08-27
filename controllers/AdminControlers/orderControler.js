@@ -11,13 +11,18 @@ const getAllOrders = async (req, res) => {
         const search = req.query.search || '';
   
         // Fetch total count of orders
-        const totalOrders = await orderModel.countDocuments();
+        const totalOrders = await orderModel.countDocuments({
+          $or: [
+            { orderId: { $regex: search, $options: 'i' } },
+            { 'userId.username': { $regex: search, $options: 'i' } }
+          ]
+        });
   
         // Calculate total pages
         const totalPages = Math.ceil(totalOrders / itemsPerPage);
   
         // Fetch orders for the current page
-        const orders = await orderModel.find({
+        let orders = await orderModel.find({
           $or: [
             { orderId: { $regex: search, $options: 'i' } },
             { 'userId.username': { $regex: search, $options: 'i' } }
@@ -30,16 +35,20 @@ const getAllOrders = async (req, res) => {
         .populate({
           path: 'items.productId',
           model: 'Product',
-          name:'name',
+          select: 'name',
           populate: {
-              path: 'category',
-              model: 'categories',
-              select: 'name'
+            path: 'category',
+            model: 'categories',
+            select: 'name'
           }
-      })
-      .exec();
-
+        })
+        .lean()  // Convert to plain JavaScript objects
+        .exec();
         
+        orders = orders.map(order => ({
+          ...order,
+          items: order.items.filter(item => !item.isCancelled)
+        }));
   
         res.render('admin/Orders', {
           orders,

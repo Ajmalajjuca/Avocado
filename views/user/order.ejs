@@ -252,6 +252,77 @@
       button {
         margin-top: 15px;
       }
+      .order-card {
+      transition: all 0.3s ease;
+    }
+
+    .order-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .order-icon {
+      font-size: 1.5rem;
+      margin-right: 10px;
+    }
+
+    .cancelled-item {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .cancelled-badge {
+      background-color: #dc3545;
+      color: white;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 0.8rem;
+    }
+
+    /* Tabs in modal */
+    .nav-tabs .nav-link {
+      color: #495057;
+    }
+
+    .nav-tabs .nav-link.active {
+      color: #007bff;
+      font-weight: bold;
+    }
+
+    /* Timeline for tracking */
+    .timeline {
+      list-style-type: none;
+      position: relative;
+      padding-left: 30px;
+    }
+
+    .timeline:before {
+      content: ' ';
+      background: #d4d9df;
+      display: inline-block;
+      position: absolute;
+      left: 9px;
+      width: 2px;
+      height: 100%;
+    }
+
+    .timeline > li {
+      margin: 20px 0;
+      padding-left: 20px;
+    }
+
+    .timeline > li:before {
+      content: ' ';
+      background: white;
+      display: inline-block;
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid #22c0e8;
+      left: 0;
+      width: 20px;
+      height: 20px;
+      z-index: 400;
+    }
     </style>
   </head>
   <body>
@@ -412,35 +483,33 @@
             <th scope="col" class="text-end">Subtotal</th>
           </tr>
         </thead>
-        <tbody>
-          ${order.items
-            .map(
-              (item) => `
-            <tr>
-              <td>
-                <div class="d-flex align-items-center">
-                  <img src="${item.productId.images[0]}" alt="${item.productId.name}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                  <div>
-                    <h6 class="mb-0">${item.productId.name}</h6>
-                    <small class="text-muted">
-                      ${(() => {
-                        if (item.productId && item.productId.category) {
-                          return item.productId.category.name || "N/A (Name not found)";
-                        }
-                        return "N/A (Category not found)";
-                      })()}
-                    </small>
-                  </div>
-                </div>
-              </td>
-              <td class="text-center">${item.quantity}</td>
-              <td class="text-end">₹${item.price.toFixed(2)}</td>
-              <td class="text-end">₹${(item.quantity * item.price).toFixed(2)}</td>
-            </tr>
-          `
-            )
-            .join("")}
-        </tbody>
+       <tbody>
+  ${order.items
+    .map(
+      (item, index) => `
+        <tr id="product-${item.productId._id}">
+  <td>
+    <div class="d-flex align-items-center">
+      <img src="${item.productId.images[0]}" alt="${item.productId.name}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+      <div>
+        <h6 class="mb-0">${item.productId.name}</h6>
+        <span class="badge bg-danger cancel-badge">${item.isCancelled ? 'Cancelled' : ''}</span>
+      </div>
+    </div>
+  </td>
+  <td class="text-center">${item.quantity}</td>
+  <td class="text-end">₹${item.price.toFixed(2)}</td>
+  <td class="text-end">₹${(item.quantity * item.price).toFixed(2)}</td>
+  <td>
+    ${!item.isCancelled ? `<button onclick="cancelProduct('${item.productId._id}', '${order._id}')" class="btn btn-danger btn-sm">Cancel</button>` : ''}
+  </td>
+</tr>
+
+      `
+    )
+    .join("")}
+</tbody>
+
         <tfoot>
           <tr class="fw-bold">
             <td colspan="3" class="text-end">Total:</td>
@@ -682,6 +751,47 @@ function confirmReturnOrder(orderId) {
   });
 }
 
+function cancelProduct(productId, orderId) {
+  Swal.fire({
+    title: 'Cancel Product',
+    text: 'Are you sure you want to cancel this product?',
+    icon: 'warning',
+    input: 'select',
+    inputOptions: {
+      'Wrong Item Ordered': 'Wrong Item Ordered',
+      'Found a Better Price': 'Found a Better Price',
+      'Product Quality Issue': 'Product Quality Issue',
+      'Other': 'Other'
+    },
+    showCancelButton: true,
+    confirmButtonText: 'Yes, Cancel it!',
+    cancelButtonText: 'No, Keep it'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const reason = result.value;
+      // Call an API to cancel the product
+      fetch(`/cancel-product`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId, orderId, reason })
+      }).then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Cancelled!', 'Your product has been cancelled.', 'success');
+            // Update UI
+            document.querySelector(`#product-${productId}`).classList.add('opacity-50');
+            document.querySelector(`#product-${productId} .cancel-badge`).textContent = 'Cancelled';
+          } else {
+            Swal.fire('Error!', 'There was an issue cancelling the product.', 'error');
+          }
+        }).catch(error => {
+          Swal.fire('Error!', 'There was an issue cancelling the product.', 'error');
+        });
+    }
+  });
+}
 
 </script>
   </body>

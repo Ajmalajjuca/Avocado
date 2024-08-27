@@ -5,6 +5,7 @@ const couponModel = require('../../models/coupon');
 const offerModel = require('../../models/offersModel');
 
 
+
 const postcart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
@@ -28,10 +29,7 @@ const postcart = async (req, res) => {
       endDate: { $gte: new Date() }
     });
 
-    let price = product.price;
-    if (activeOffer) {
-      price = price * (1 - activeOffer.discount / 100);
-    }
+    const price = activeOffer ? product.price * (1 - activeOffer.discount / 100) : product.price;
 
     const cart = req.cart;
 
@@ -70,7 +68,7 @@ const postcart = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Validation error', errors: validationError.errors });
     }
 
-    product.stock -= quantity;
+    
     await product.save();
     await cart.save();
 

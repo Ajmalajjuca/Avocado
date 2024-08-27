@@ -115,9 +115,11 @@ const downloadInvoice = async (req, res) => {
       if (!order) {
         return res.status(404).send("Order not ");
       }
+
+      const activeItems = order.items.filter(item => !item.isCancelled);
   
       // Calculate subtotal
-      const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const subtotal = activeItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
       // Calculate total savings (including product discounts and coupon)
       const totalSavings = order.totalSavings || 0;
@@ -126,7 +128,7 @@ const downloadInvoice = async (req, res) => {
       const finalTotal = subtotal - totalSavings;
   
       res.render("user/invoice", { 
-        order,
+        order: { ...order.toObject(), items: activeItems },
         user: user.username,
         subtotal,
         totalSavings,
@@ -157,9 +159,11 @@ async function getInvoiceData(orderId) {
         throw new Error(`Order with ID ${orderId} not found.`);
       }
   
-      const subtotal = order.items.reduce((total, item) => {
-        return total + (item.price * item.quantity);
-      }, 0);
+      const subtotal = order.items
+  .filter(item => !item.isCancelled)  // Filter out cancelled items
+  .reduce((total, item) => {
+    return total + (item.price * item.quantity);
+  }, 0);
   
       const totalSavings = order.totalSavings; // Calculate the total savings, if any
   
@@ -200,10 +204,11 @@ async function getInvoiceData(orderId) {
 
         doc.font('Helvetica');
 
+        const items = order.items.filter(item => !item.isCancelled);
         // Add content to the PDF
         let y = addInvoiceHeader(doc, order, 0);
         y = addInvoiceDetails(doc, order, y);
-        y = addInvoiceTable(doc, order.items, y);
+        y = addInvoiceTable(doc, items, y);
         y = addInvoiceSummary(doc, subtotal, totalSavings, finalTotal, y);
         addInvoiceFooter(doc, 'Thank you for your purchase!');
 
@@ -262,17 +267,19 @@ function addInvoiceTable(doc, items, y) {
   y += 25;
 
   // Table rows
-  items.forEach((item, index) => {
-      if (index % 2 === 0) {
-          doc.fillColor('#f9f9f9').rect(50, y - 5, doc.page.width - 100, 20).fill();
-      }
-      doc.fillColor('#333333').fontSize(10);
-      doc.text(item.productId.name, 60, y);
-      doc.text(item.price.toFixed(2), 300, y);
-      doc.text(item.quantity.toString(), 400, y);
-      doc.text((item.price * item.quantity).toFixed(2), 500, y);
-      y += 20;
-  });
+  items
+  .filter(item => !item.isCancelled)  // Filter out cancelled items
+  .forEach((item, index) => {
+    if (index % 2 === 0) {
+        doc.fillColor('#f9f9f9').rect(50, y - 5, doc.page.width - 100, 20).fill();
+    }
+    doc.fillColor('#333333').fontSize(10);
+    doc.text(item.productId.name, 60, y);
+    doc.text(item.price.toFixed(2), 300, y);
+    doc.text(item.quantity.toString(), 400, y);
+    doc.text((item.price * item.quantity).toFixed(2), 500, y);
+    y += 20;
+});
 
   return y + 10;
 }

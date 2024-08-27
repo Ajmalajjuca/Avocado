@@ -47,28 +47,29 @@
               </div>
             </div>
           </header>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>#ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Total</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Date</th>
-                    <th scope="col" class="text-end">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% orders.forEach(order => { %>
-                  <tr>
-                    <td><%= order.orderId %></td>
-                    <td><b><%= order.userId.username %> </b></td>
-                    <td><%= order.userId.email %></td>
-                    <td>₹<%= order.amount %></td>
-                    <td>
+          
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>#ID</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Total</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Date</th>
+                  <th scope="col" class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% orders.forEach(order => { %>
+                <tr>
+                  <td><%= order.orderId %></td>
+                  <td><b><%= order.userId.username %></b></td>
+                  <td><%= order.userId.email %></td>
+                  <td>₹<%= order.amount %></td>
+                  <td>
                       <% if (order.status === 'Pending') { %>
                       <span class="badge rounded-pill alert-warning"
                         >Pending</span
@@ -97,16 +98,9 @@
                       >
                       <% } else { %> <%= order.status %> <% } %>
                     </td>
-                    <td>
-                      <%= new Date(order.createdAt).toLocaleDateString() %>
-                    </td>
+                    <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
                     <td class="text-end">
-                      <a
-                        href="javascript:void(0);"
-                        class="btn btn-md rounded font-sm"
-                        onclick="showOrderDetails('<%= order._id %>')"
-                        >Detail</a
-                      >
+                      <a href="javascript:void(0);" class="btn btn-md rounded font-sm" onclick="showOrderDetails('<%= order._id %>')">Detail</a>
                       <div class="dropdown">
                         <a
                           href="#"
@@ -155,41 +149,33 @@
                       </div>
                     </td>
                   </tr>
-                  <tr
-                    id="details-<%= order._id %>"
-                    class="order-details"
-                    style="display: none"
-                  >
+                  <tr id="details-<%= order._id %>" class="order-details" style="display: none">
                     <td colspan="7">
                       <h4>Order Items</h4>
                       <ul>
-                        <% order.items.forEach(item => { %> <% if
-                        (item.productId) { %>
-                        <li>
-                          <%= item.productId.name %> - Quantity: <%=
-                          item.quantity %>
-                        </li>
-                        <% } else { %>
-                        <li>
-                          Product not available - Quantity: <%= item.quantity %>
-                        </li>
-                        <% } %> <% }) %>
+                        <% order.items.forEach(item => { %>
+                          <% if (item.productId && !item.isCancelled) { %>
+                          <li>
+                            <%= item.productId.name %> - Quantity: <%= item.quantity %>
+                          </li>
+                          <% } else if (!item.isCancelled) { %>
+                          <li>
+                            Product not available - Quantity: <%= item.quantity %>
+                          </li>
+                          <% } %>
+                        <% }) %>
                       </ul>
                       <% if (order.address) { %>
                       <p>
-                        <strong>Address:</strong> <%= order.address.housename
-                        %>, <%= order.address.street %>, <%= order.address.city
-                        %>, <%= order.address.state %>, <%=
-                        order.address.country %>, <%= order.address.pincode %>
+                        <strong>Address:</strong> <%= order.address.housename %>, <%= order.address.street %>, <%= order.address.city %>, <%= order.address.state %>, <%= order.address.country %>, <%= order.address.pincode %>
                       </p>
                       <% } else { %>
                       <p><strong>Address:</strong> Not provided</p>
                       <% } %>
-                      <p>
-                        <strong>Payment Method:</strong> <%= order.payment %>
-                      </p>
+                      <p><strong>Payment Method:</strong> <%= order.payment %></p>
                     </td>
                   </tr>
+                  
                   <% }); %>
                 </tbody>
               </table>
@@ -356,8 +342,8 @@
                     </thead>
                     <tbody>
                         ${order.items
-                          .map(
-                            (item) => `
+  .filter(item => !item.isCancelled)
+  .map(item => `
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -369,9 +355,7 @@
                                             <h6 class="mb-0">${
                                               item.productId.name
                                             }</h6>
-                                            <small class="text-muted">${
-                                              item.productId.category || "N/A"
-                                            }</small>
+                                            <small class="text-muted">${item.productId.category?.name || 'N/A'}</small>
                                         </div>
                                     </div>
                                 </td>

@@ -139,4 +139,49 @@ const userModel = require('../../models/userModel');
     }
 };
 
-module.exports = {getWishlist,addToWishlist,removeFromWishlist,moveToCart,getWishlistCount};
+
+const wishlistToggle = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { productId } = req.body;
+
+    // Check if the product exists
+    const product = await productModel.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    // Find the user's wishlist
+    let wishlist = await Wishlistmodel.findOne({ userId });
+    if (!wishlist) {
+      wishlist = new Wishlistmodel({ userId, items: [] });
+    }
+
+    // Check if the product is already in the wishlist
+    const existingItem = wishlist.items.find(item => item.productId.toString() === productId);
+
+    if (existingItem) {
+      // Remove the product from the wishlist
+      wishlist.items = wishlist.items.filter(item => item.productId.toString() !== productId);
+      await wishlist.save();
+      return res.json({ success: true, isWishlisted: false, message: 'Product removed from wishlist', wishlist: wishlist.items });
+    } else {
+      // Add the product to the wishlist
+      wishlist.items.push({
+        productId: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0] // Assuming the product has an images array
+      });
+      await wishlist.save();
+      return res.json({ success: true, isWishlisted: true, message: 'Product added to wishlist', wishlist: wishlist.items });
+    }
+  } catch (error) {
+    console.error('Error toggling wishlist:', error);
+    return res.status(500).json({ success: false, message: 'Error toggling wishlist' });
+  }
+};
+
+
+
+module.exports = {getWishlist,addToWishlist,removeFromWishlist,moveToCart,getWishlistCount,wishlistToggle};

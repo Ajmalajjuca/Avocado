@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <%- include('partials/head'); %>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta charset="UTF-8">
     <meta name="description" content="Ogani Template">
     <meta name="keywords" content="Ogani, unica, creative, html">
@@ -173,35 +175,105 @@
 
     <%- include('partials/foot') %>
     <script>
-      async function addToCart(productId, size) {
-  try {
-    const response = await fetch('/cart/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ productId, quantity: 1, size })
-    });
-    
-    if (response.status === 401) {
-      window.location.href = '/login';
-      return;
+           async function addToCart(productId) {
+    const quantityInput = document.getElementById(`quantity-${productId}`);
+    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+    const maxStock = quantityInput
+        ? parseInt(quantityInput.dataset.stock)
+        : Infinity;
+
+    if (quantity > maxStock) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: `Sorry, only ${maxStock} items are available in stock.`,
+        });
+        return;
     }
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    updateCartCount(data.cartItemCount);
-    alert('Product added to cart');
-  } catch (error) {
-    console.error('Error adding product to cart:', error);
-    alert('Failed to add product to cart');
-  }
+    try {
+        const response = await fetch("/cart/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ productId, quantity }),
+        });
 
-  
+        if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+        }
+
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Success!",
+                text: data.message,
+            });
+
+            updateCartCount(data.cartItemCount);
+        } else {
+            if (data.message === 'Not enough stock available') {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: `Sorry, only ${data.availableStock} items are available in stock.`,
+                });
+            } else {
+                throw new Error(data.message || "Failed to add product to cart");
+            }
+        }
+    } catch (error) {
+        console.error("Error adding product to cart:", error);
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: error.message || "Failed to add product to cart",
+        });
+    }
 }
+
+async function addToWishlist(productId) {
+    try {
+      const response = await fetch("/wishlist/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId }),
+      });
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: data.message,
+        });
+        
+
+        // Optionally, you can update the UI here
+      } else {
+        throw new Error(data.message || "Failed to add product to wishlist");
+      }
+    } catch (error) {
+      console.error("Error adding product to wishlist:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.message || "Failed to add product to wishlist",
+      });
+    }
+  }
 
 function updateCartCount(count) {
   const cartCountElement = document.getElementById('cart-count');

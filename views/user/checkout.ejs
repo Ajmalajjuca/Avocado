@@ -454,7 +454,7 @@
           "key": "<%= process.env.RAZORPAY_KEY_ID %>",
           "amount": orderData.amount,
           "currency": orderData.currency,
-          "name": "Your Company Name",
+          "name": "Avocado",
           "description": "Order Payment",
           "order_id": orderData.orderId,
           "handler": function(response) {
@@ -566,5 +566,56 @@
       cartCount.classList.add('bump');
       setTimeout(() => cartCount.classList.remove('bump'), 300);
     }
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const cartTotal = <%= cart.Cart_total.toFixed(2) %>; // Get the total cart value
+    const codOption = document.getElementById('cod'); // COD radio button
+    const placeOrderButton = document.querySelector('.btn-place-order'); // Place Order button
+
+    if (cartTotal > 1000) {
+      codOption.disabled = true; // Disable COD option
+
+      // Display SweetAlert warning
+      Swal.fire({
+        icon: 'warning',
+        title: 'COD Unavailable',
+        text: 'Cash on Delivery is not available for orders above ₹1000. Please choose another payment method.',
+        confirmButtonText: 'Okay',
+        customClass: {
+          confirmButton: 'btn btn-warning',
+        },
+        buttonsStyling: false,
+      });
+
+      // Ensure that another payment method is selected if COD is disabled
+      const paymentOptions = document.querySelectorAll('input[name="paymentMethod"]');
+      paymentOptions.forEach(option => {
+        if (!codOption.checked && codOption.disabled) {
+          option.checked = option.value !== 'cod'; // Automatically select a non-COD option
+        }
+      });
+    }
+
+    // Prevent form submission if COD is selected and total > 1000
+    placeOrderButton.addEventListener('click', function (e) {
+      if (cartTotal > 1000 && codOption.checked) {
+        e.preventDefault();
+
+        // Show SweetAlert when COD is attempted
+        Swal.fire({
+          icon: 'error',
+          title: 'Order Limit Exceeded',
+          text: 'Please select a different payment method. Cash on Delivery is not available for orders above ₹1000.',
+          confirmButtonText: 'Okay',
+          customClass: {
+            confirmButton: 'btn btn-danger',
+          },
+          buttonsStyling: false,
+        });
+      }
+    });
   });
 </script>

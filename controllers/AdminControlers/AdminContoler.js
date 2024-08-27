@@ -125,6 +125,69 @@ const getDashboard = async (req, res) => {
         const totalUser =   await userModel.countDocuments()    
         const pendingOrder = await orderModel.find({status:"Pending"}).countDocuments()  
         const ConfirmedOrder = await orderModel.find({status:"Delivered"}).countDocuments()
+
+        // Get top selling products
+const topProducts = await orderModel.aggregate([
+  { $unwind: "$items" },
+  { $group: {
+      _id: "$items.productId",
+      soldCount: { $sum: "$items.quantity" },
+      revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } }
+    }
+  },
+  { $sort: { soldCount: -1 } },
+  { $limit: 10 },
+  { $lookup: {
+      from: "products",
+      localField: "_id",
+      foreignField: "_id",
+      as: "productDetails"
+    }
+  },
+  { $unwind: "$productDetails" },
+  { $project: {
+      name: "$productDetails.name",
+      
+      soldCount: 1,
+      revenue: 1
+    }
+  }
+]);
+
+// Get top selling categories
+const topCategories = await orderModel.aggregate([
+  { $unwind: "$items" },
+  { $lookup: {
+      from: "products",
+      localField: "items.productId",
+      foreignField: "_id",
+      as: "productDetails"
+    }
+  },
+  { $unwind: "$productDetails" },
+  { $group: {
+      _id: "$productDetails.category",
+      revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+      productsSold: { $sum: "$items.quantity" }
+    }
+  },
+  { $sort: { revenue: -1 } },
+  { $limit: 4 },
+  { $lookup: {
+      from: "categories",
+      localField: "_id",
+      foreignField: "_id",
+      as: "categoryDetails"
+    }
+  },
+  { $unwind: "$categoryDetails" },
+  { $project: {
+      name: "$categoryDetails.name",
+      revenue: 1,
+      productsSold: 1
+    }
+  }
+]);
        
         res.render("admin/Dashboard",{
           users:users,
@@ -137,7 +200,9 @@ const getDashboard = async (req, res) => {
           totalUser,
           pendingOrder,
           ConfirmedOrder,
-          totalDiscount
+          totalDiscount,
+          topProducts,
+          topCategories
         })
     }else{
         redirect("/admin")
@@ -407,4 +472,45 @@ const downloadReport = (req, res) => {
   }
 };
 
-module.exports = { getLogin, postLogin, getDashboard ,getLogout,generateReport, report, downloadReport};
+const getSalesData = async (req, res) => {
+  const period = req.query.period;
+  let startDate, endDate, groupBy;
+
+  const now = new Date();
+
+  switch(period) {
+      case 'weekly':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+          groupBy = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+          break;
+      case 'monthly':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          groupBy = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+          break;
+      case 'yearly':
+          startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+          groupBy = { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
+          break;
+  }
+
+  try {
+      const salesData = await orderModel.aggregate([
+          { $match: { createdAt: { $gte: startDate } } },
+          { $group: {
+              _id: groupBy,
+              totalSales: { $sum: "$amount" }
+          }},
+          { $sort: { _id: 1 } }
+      ]);
+
+      const labels = salesData.map(item => item._id);
+      const sales = salesData.map(item => item.totalSales);
+
+      res.json({ labels, sales });
+  } catch (error) {
+      console.error('Error fetching sales data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+module.exports = { getLogin, postLogin, getDashboard ,getLogout,generateReport, report, downloadReport,getSalesData};

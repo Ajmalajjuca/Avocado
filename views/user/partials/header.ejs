@@ -47,10 +47,10 @@
   </div>
   <nav class="humberger__menu__nav mobile-menu">
     <ul>
-      <li class="active"><a href="/">Home</a></li>
-      <li><a href="/shop">Shop</a></li>
-      <li><a href="/about">About</a></li>
-      <li><a href="/contact">Contact</a></li>
+      <li class="menu-item"><a href="/">Home</a></li>
+      <li class="menu-item"><a href="/shop">Shop</a></li>
+      <li class="menu-item"><a href="/about">About</a></li>
+      <li class="menu-item"><a href="/contact">Contact</a></li>
     </ul>
   </nav>
   <div id="mobile-menu-wrap"></div>
@@ -117,10 +117,10 @@
       <div class="col-lg-6">
         <nav class="header__menu">
           <ul>
-            <li class="active"><a href="/">Home</a></li>
-            <li><a href="/shop">Shop</a></li>
-            <li><a href="/about">About</a></li>
-            <li><a href="/contact">Contact</a></li>
+            <li class="menu-item"><a href="/">Home</a></li>
+            <li class="menu-item"><a href="/shop">Shop</a></li>
+            <li class="menu-item"><a href="/about">About</a></li>
+            <li class="menu-item"><a href="/contact">Contact</a></li>
           </ul>
         </nav>
       </div>
@@ -271,6 +271,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-   
+document.addEventListener('DOMContentLoaded', function() {
+  // Get all menu items
+  const menuItems = document.querySelectorAll('.menu-item');
+  
+  // Get the current page URL
+  const currentPage = window.location.pathname;
+
+  // Loop through menu items and add 'active' class to the matching one
+  menuItems.forEach(item => {
+    const link = item.querySelector('a');
+    if (link.getAttribute('href') === currentPage) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+});
  </script>
 </header>

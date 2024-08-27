@@ -23,6 +23,8 @@ router.get("/login", userController.getLogin);
 router.get("/signup", userController.getSignup);
 router.get("/forgot-password", userController.getForgotPassword);
 router.post("/forgot-password",userController.forgotPassword)
+router.post('/submit-contact', userController.submitContact);
+router.get('/about',userController.getabout);
 
 
 router.get('/profile', userController.getProfile);
@@ -88,6 +90,7 @@ router.post('/place-order', authMiddleware, findCartByUser, checkoutController.p
 router.post('/create-razorpay-order', authMiddleware, findCartByUser, checkoutController.createRazorpayOrder);
 
 
+
 //wallet
 router.get('/wallet',walletController.getWalletInfo,)
 router.post('/create-order',walletController.createOrder);
@@ -99,6 +102,10 @@ router.get('/orders', orderController.getUserOrders);
 router.get('/orders/:orderId/details',orderController.getOrderid)
 router.post('/orders/:orderId/cancel',orderController.postOrderCancel)
 router.post('/orders/:orderId/return',orderController.postOrderReturn)
+router.post('/retry-payment/:orderId', orderController.retryPayment);
+router.post('/verify-payment', orderController.verifyPayment);
+router.post('/cancel-product', orderController.cancelproduct);
+
 
 //Wishlist
 router.get('/wishlist', authMiddleware, wishlistController.getWishlist);
@@ -106,10 +113,14 @@ router.post('/wishlist/add', authMiddleware, wishlistController.addToWishlist);
 router.post('/wishlist/remove', authMiddleware, wishlistController.removeFromWishlist);
 router.post('/wishlist/move-to-cart', authMiddleware, wishlistController.moveToCart);
 router.get('/wishlist/count', authMiddleware, wishlistController.getWishlistCount);
+router.post('/wishlist/toggle',authMiddleware,wishlistController.wishlistToggle);
 
+//invoice
 router.get('/invoice/:id',authMiddleware,invoiceController.getInvoice)
 router.get('/download-invoice/:orderId',authMiddleware,invoiceController.downloadInvoice);
 router.post('/send-invoice/:orderId',authMiddleware,invoiceController.sendInvoice);
+
+
 
 router.get('/check-auth', (req, res) => {
   res.json({ isLoggedIn: req.session.isAuth || false });

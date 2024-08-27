@@ -121,257 +121,124 @@
                   </div>
             </div>
             <div class="row">
-                <div class="col-xl-8 col-lg-12">
-                    <div class="card mb-4">
-                        <article class="card-body">
-                            <h5 class="card-title">Sale statistics</h5>
-                            <canvas id="myChart" height="120px"></canvas>
-                        </article>
+              <div class="col-xl-8 col-lg-12">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Sale statistics</h5>
+                        <div class="mb-3">
+                            <select id="salesFilter" class="form-select">
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly" selected>Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        <div id="salesChart"></div>
                     </div>
-                    
-                </div>
-                <div class="col-xl-4 col-lg-12">
-                    <div class="card mb-4">
-                        <article class="card-body">
-                            <h5 class="card-title">Revenue Base on Area</h5>
-                            <canvas id="myChart2" height="217"></canvas>
-                        </article>
-                    </div>
-                    
                 </div>
             </div>
-            <div class="card mb-4">
-                <header class="card-header">
-                    <h4 class="card-title">Latest orders</h4>
-                    <div class="row align-items-center">
-                        <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
-                            <div class="custom_select">
-                                <select class="form-select select-nice">
-                                    <option selected>All Categories</option>
-                                    <option>Women's Clothing</option>
-                                    <option>Men's Clothing</option>
-                                    <option>Cellphones</option>
-                                    <option>Computer & Office</option>
-                                    <option>Consumer Electronics</option>
-                                    <option>Jewelry & Accessories</option>
-                                    <option>Home & Garden</option>
-                                    <option>Luggage & Bags</option>
-                                    <option>Shoes</option>
-                                    <option>Mother & Kids</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-6">
-                            <input type="date" value="02.05.2021" class="form-control">
-                        </div>
-                        <div class="col-md-2 col-6">
-                            <div class="custom_select">
-                                <select class="form-select select-nice">
-                                    <option selected>Status</option>
-                                    <option>All</option>
-                                    <option>Paid</option>
-                                    <option>Chargeback</option>
-                                    <option>Refund</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </header>
+            
+            <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
+              <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between pb-0">
+                  <div class="card-title mb-0">
+                    <h5 class="m-0 me-2">Order Statistics</h5>
+                    <small class="text-muted">₹<%= totalSales %> Total Sales</small>
+                  </div>
+                </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <div class="table-responsive">
-                            <table class="table align-middle table-nowrap mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th scope="col" class="text-center">
-                                            <div class="form-check align-middle">
-                                                <input class="form-check-input" type="checkbox" id="transactionCheck01">
-                                                <label class="form-check-label" for="transactionCheck01"></label>
-                                            </div>
-                                        </th>
-                                        <th class="align-middle" scope="col">Order ID</th>
-                                        <th class="align-middle" scope="col">Billing Name</th>
-                                        <th class="align-middle" scope="col">Date</th>
-                                        <th class="align-middle" scope="col">Total</th>
-                                        <th class="align-middle" scope="col">Payment Status</th>
-                                        <th class="align-middle" scope="col">Payment Method</th>
-                                        <th class="align-middle" scope="col">View Details</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="text-center">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="transactionCheck02">
-                                                <label class="form-check-label" for="transactionCheck02"></label>
-                                            </div>
-                                        </td>
-                                        <td><a href="#" class="fw-bold">#SK2540</a> </td>
-                                        <td>Neal Matthews</td>
-                                        <td>
-                                            07 Oct, 2021
-                                        </td>
-                                        <td>
-                                            $400
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-pill badge-soft-success">Paid</span>
-                                        </td>
-                                        <td>
-                                            <i class="material-icons md-payment font-xxl text-muted mr-5"></i> Mastercard
-                                        </td>
-                                        <td>
-                                            <a href="#" class="btn btn-xs"> View details</a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="transactionCheck03">
-                                                <label class="form-check-label" for="transactionCheck03"></label>
-                                            </div>
-                                        </td>
-                                        <td><a href="#" class="fw-bold">#SK2541</a> </td>
-                                        <td>Jamal Burnett</td>
-                                        <td>
-                                            07 Oct, 2021
-                                        </td>
-                                        <td>
-                                            $380
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-pill badge-soft-danger">Chargeback</span>
-                                        </td>
-                                        <td>
-                                            <i class="material-icons md-payment font-xxl text-muted mr-5"></i> Visa
-                                        </td>
-                                        <td>
-                                            <a href="#" class="btn btn-xs"> View details</a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="transactionCheck04">
-                                                <label class="form-check-label" for="transactionCheck04"></label>
-                                            </div>
-                                        </td>
-                                        <td><a href="#" class="fw-bold">#SK2542</a> </td>
-                                        <td>Juan Mitchell</td>
-                                        <td>
-                                            06 Oct, 2021
-                                        </td>
-                                        <td>
-                                            $384
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-pill badge-soft-success">Paid</span>
-                                        </td>
-                                        <td>
-                                            <i class="material-icons md-payment font-xxl text-muted mr-5"></i> Paypal
-                                        </td>
-                                        <td>
-                                            <a href="#" class="btn btn-xs"> View details</a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="transactionCheck05">
-                                                <label class="form-check-label" for="transactionCheck05"></label>
-                                            </div>
-                                        </td>
-                                        <td><a href="#" class="fw-bold">#SK2543</a> </td>
-                                        <td>Barry Dick</td>
-                                        <td>
-                                            05 Oct, 2021
-                                        </td>
-                                        <td>
-                                            $412
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-pill badge-soft-success">Paid</span>
-                                        </td>
-                                        <td>
-                                            <i class="material-icons md-payment font-xxl text-muted mr-5"></i> Mastercard
-                                        </td>
-                                        <td>
-                                            <a href="#" class="btn btn-xs"> View details</a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="transactionCheck06">
-                                                <label class="form-check-label" for="transactionCheck06"></label>
-                                            </div>
-                                        </td>
-                                        <td><a href="#" class="fw-bold">#SK2544</a> </td>
-                                        <td>Ronald Taylor</td>
-                                        <td>
-                                            04 Oct, 2021
-                                        </td>
-                                        <td>
-                                            $404
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-pill badge-soft-warning">Refund</span>
-                                        </td>
-                                        <td>
-                                            <i class="material-icons md-payment font-xxl text-muted mr-5"></i> Visa
-                                        </td>
-                                        <td>
-                                            <a href="#" class="btn btn-xs"> View details</a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="transactionCheck07">
-                                                <label class="form-check-label" for="transactionCheck07"></label>
-                                            </div>
-                                        </td>
-                                        <td><a href="#" class="fw-bold">#SK2545</a> </td>
-                                        <td>Jacob Hunter</td>
-                                        <td>
-                                            04 Oct, 2021
-                                        </td>
-                                        <td>
-                                            $392
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-pill badge-soft-success">Paid</span>
-                                        </td>
-                                        <td>
-                                            <i class="material-icons md-payment font-xxl text-muted mr-5"></i> Paypal
-                                        </td>
-                                        <td>
-                                            <a href="#" class="btn btn-xs"> View details</a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex flex-column align-items-center gap-1">
+                      <h2 class="mb-2"><%= orderCount %></h2>
+                      <span>Total Orders</span>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                      <div id="orderStatisticsChart"></div>
+                    </div>
+                  </div>
+                  <ul class="p-0 m-0">
+                    <% topCategories.forEach((category, index) => { %>
+                      <li class="d-flex mb-4 pb-1">
+                        <div class="avatar flex-shrink-0 me-3">
+                          <span class="avatar-initial rounded bg-label-<%= ['primary', 'success', 'info', 'secondary'][index % 4] %>">
+                          </span>
                         </div>
-                    </div> <!-- table-responsive end// -->
+                        <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                          <div class="me-2">
+                            <h6 class="mb-0"><%= category.name %></h6>
+                          </div>
+                          <div class="user-progress">
+                            <small class="fw-semibold">₹<%= category.revenue.toFixed(2) %></small>
+                          </div>
+                        </div>
+                      </li>
+                    <% }); %>
+                  </ul>
                 </div>
+              </div>
             </div>
-            <div class="pagination-area mt-30 mb-50">
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-start">
-                        <li class="page-item active"><a class="page-link" href="#">01</a></li>
-                        <li class="page-item"><a class="page-link" href="#">02</a></li>
-                        <li class="page-item"><a class="page-link" href="#">03</a></li>
-                        <li class="page-item"><a class="page-link dot" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">16</a></li>
-                        <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li>
-                    </ul>
-                </nav>
-            </div>
+          </div>
+
+            <div class="row">
+              <div class="col-xl-6 col-lg-12">
+                  <div class="card mb-4">
+                      <article class="card-body">
+                          <h5 class="card-title">Top Selling Products</h5>
+                          <table class="table table-hover">
+                              <thead>
+                                  <tr>
+                                      <th>Product</th>
+                                      <th>Sold</th>
+                                      <th>Revenue</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <% topProducts.forEach(product => { %>
+                                  <tr>
+                                      <td><%= product.name %></td>
+                                      <td><%= product.soldCount %></td>
+                                      <td>₹<%= product.revenue %></td>
+                                  </tr>
+                                  <% }); %>
+                              </tbody>
+                          </table>
+                      </article>
+                  </div>
+              </div>
+              <div class="col-xl-6 col-lg-12">
+                  <div class="card mb-4">
+                      <article class="card-body">
+                          <h5 class="card-title">Top Selling Categories</h5>
+                          <table class="table table-hover">
+                              <thead>
+                                  <tr>
+                                      <th>Category</th>
+                                      <th>Products Sold</th>
+                                      <th>Revenue</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <% topCategories.forEach(category => { %>
+                                  <tr>
+                                      <td><%= category.name %></td>
+                                      <td><%= category.productsSold %></td>
+                                      <td>₹<%= category.revenue %></td>
+                                  </tr>
+                                  <% }); %>
+                              </tbody>
+                          </table>
+                      </article>
+                  </div>
+              </div>
+          </div>
+            
         </section> <!-- content-main end// -->
         
     </main>
     <%- include('partials/foot.ejs') %>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Report Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -466,7 +333,142 @@
         });
       });
     });
+
+
     </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        var chartElement = document.querySelector("#orderStatisticsChart");
+        
+        if (chartElement) {
+          var options = {
+            series: <%- JSON.stringify(topCategories.map(c => c.productsSold)) %>,
+            chart: {
+              width: 200,  // Decreased from 380
+              type: 'donut',
+              sparkline: {
+                enabled: true  // This removes the grid and only shows the donut
+              }
+            },
+            labels: <%- JSON.stringify(topCategories.map(c => c.name)) %>,
+            colors: ['#696cff', '#71dd37', '#03c3ec', '#ffab00'],  // Custom colors
+            dataLabels: {
+              enabled: false  // This removes the labels from the donut slices
+            },
+            legend: {
+              show: false  // This removes the legend
+            },
+            plotOptions: {
+              pie: {
+                donut: {
+                  size: '70%',  // This makes the donut thinner
+                  labels: {
+                    show: true,
+                    name: {
+                      show: false
+                    },
+                    value: {
+                      show: true,
+                      fontSize: '2rem',
+                      fontFamily: 'Public Sans',
+                      color: '#566a7f',
+                      offsetY: 5,
+                      formatter: function (val) {
+                        return parseInt(val);
+                      }
+                    },
+                    total: {
+                      show: true,
+                      label: 'Total',
+                      color: '#566a7f',
+                      formatter: function (w) {
+                        return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responsive: [{
+              breakpoint: 480,
+              options: {
+                chart: {
+                  width: 200
+                }
+              }
+            }]
+          };
+     
+          var chart = new ApexCharts(chartElement, options);
+          chart.render();
+        } else {
+          console.error("Chart container not found");
+        }
+      });
+    </script>
+
+<script>
+let salesChart;
+
+function updateChart(period) {
+    fetch(`/admin/sales-data?period=${period}`)
+        .then(response => response.json())
+        .then(data => {
+            const options = {
+                series: [{
+                    name: 'Sales',
+                    data: data.sales
+                }],
+                chart: {
+                    height: 350,
+                    type: 'area',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth'
+                },
+                xaxis: {
+                    type: 'datetime',
+                    categories: data.labels
+                },
+                tooltip: {
+                    x: {
+                        format: 'dd/MM/yy'
+                    },
+                },
+                colors: ['#008FFB', '#00E396'],
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.9,
+                        stops: [0, 100]
+                    }
+                }
+            };
+
+            if (salesChart) {
+                salesChart.updateOptions(options);
+            } else {
+                salesChart = new ApexCharts(document.querySelector("#salesChart"), options);
+                salesChart.render();
+            }
+        });
+}
+
+document.getElementById('salesFilter').addEventListener('change', function() {
+    updateChart(this.value);
+});
+
+// Initial chart load
+updateChart('monthly');
+</script>
 </body>
 
 

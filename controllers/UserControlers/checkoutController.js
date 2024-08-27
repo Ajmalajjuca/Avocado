@@ -37,9 +37,8 @@ const getcheckout = async (req, res) => {
 const placeOrder = async (req, res) => {
   try {
     const { addressId, paymentMethod,totalSavings } = req.body;
-
-    
     const cart = req.cart;
+console.log('addressId>>>',addressId);
 
     let shippingAddress;
 
@@ -107,18 +106,21 @@ const placeOrder = async (req, res) => {
        // Create a new order with status "Pending"
        const order = new orderModel({
         userId: req.user._id,
-        items: orderItems,
-        address: shippingAddress,
-        amount: cart.Cart_total,
-        payment: paymentMethod,
-        createdAt: new Date(),
-        updated: new Date(),
-        status: "Pending" ,
-        paymentstatus: "Pending",
-        totalSavings: parseFloat(totalSavings),
-      }); 
+      items: orderItems,
+      address: shippingAddress,
+      amount: cart.Cart_total,
+      payment: paymentMethod,
+      createdAt: new Date(),
+      updated: new Date(),
+      status: "Pending",
+      paymentstatus: "Pending", // Set initial payment status to Pending
+      totalSavings: parseFloat(totalSavings),
+      paymentRetryDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
 
       await order.save();
+      console.log("Order created:", order._id);
+      
 
     // Check if payment method is wallet
     if (paymentMethod === "wallet") {
@@ -139,7 +141,7 @@ const placeOrder = async (req, res) => {
       });
       await transaction.save();
 
-      order.paymentstatus = "Confirmed";
+      order.paymentstatus = "Completed";
       await order.save();
 
 
@@ -148,37 +150,55 @@ const placeOrder = async (req, res) => {
       const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
 
       if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
-        order.paymentstatus = "Failed";
-        await order.save();
-        return res.status(400).json({ success: false, message: "Razorpay payment details are missing" });
-      }
+        console.log("Razorpay payment failed - missing details");
+        return res.status(200).json({ 
+          success: true, 
+          message: "Order created with pending payment", 
+          orderId: order._id,
+          requiresPayment: true
+        });
+        }
 
+      console.log('paramsss is>>>>>',razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature);
+      
       const isPaymentVerified = verifyRazorpayPayment(
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature
       );
 
+      console.log('isPayment verified is>>>>',isPaymentVerified);
+      
+
       if (!isPaymentVerified) {
-        order.paymentstatus = "Failed";
-        await order.save();
-        return res.status(400).json({ success: false, message: "Payment verification failed" });
+        console.log("Razorpay payment verification failed");
+        return res.status(200).json({ 
+          success: true, 
+          message: "Order created with pending payment", 
+          orderId: order._id,
+          requiresPayment: true
+        });
       }
 
-      order.paymentstatus = "Confirmed";
+      order.paymentstatus = "Completed";
       order.razorpay_order_id = razorpay_order_id;
       order.razorpay_payment_id = razorpay_payment_id;
       await order.save();
+      console.log("Razorpay payment successful");
     }
+    
 
     
 
     // Reduce stock quantities
-    for (let item of cart.items) {
-      const product = await productModel.findById(item.productId);
-      product.stock -= item.quantity;
-      await product.save();
-    }
+    if (order.paymentstatus === "Completed" || paymentMethod === "cod") {
+      for (let item of cart.items) {
+        const product = await productModel.findById(item.productId);
+        product.stock -= item.quantity;
+        await product.save();
+      }
 
     // Clear the user's cart
     cart.items = [];
@@ -187,9 +207,10 @@ const placeOrder = async (req, res) => {
     await cart.save();
 
     res.redirect("/order-confirmation/" + order._id);
+    }
   } catch (error) {
     console.error("Error placing order:", error);
-    res.status(500).send("An error occurred while placing your order");
+    res.status(500).json("An error occurred while placing your order");
   }
 };
 

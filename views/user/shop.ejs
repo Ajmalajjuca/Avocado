@@ -202,7 +202,7 @@
                   <i class="fa fa-phone"></i>
                 </div>
                 <div class="hero__search__phone__text">
-                  <h5>+65 11.188.888</h5>
+                  <h5>+91 9019345336</h5>
                   <span>support 24/7 time</span>
                 </div>
               </div>
@@ -545,44 +545,66 @@
         }
     
         // Add to cart functionality
-        function addToCart(productId) {
-          console.log('Adding to cart:', productId);
-          fetch('/cart/add', {
-            method: 'POST',
+        async function addToCart(productId) {
+    const quantityInput = document.getElementById(`quantity-${productId}`);
+    const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+    const maxStock = quantityInput
+        ? parseInt(quantityInput.dataset.stock)
+        : Infinity;
+
+    if (quantity > maxStock) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: `Sorry, only ${maxStock} items are available in stock.`,
+        });
+        return;
+    }
+
+    try {
+        const response = await fetch("/cart/add", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json'
+                "Content-Type": "application/json",
             },
-            body: JSON.stringify({ productId, quantity: 1 })
-          })
-          .then(response => response.json())
-          .then(data => {
-            console.log('Cart response data:', data);
-            if (data.success) {
-              updateCartCount(data.cartItemCount);
-              Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: 'Product added to cart',
-                showConfirmButton: false,
-                timer: 1500
-              });
-            } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Failed to add product to cart',
-              });
-            }
-          })
-          .catch(error => {
-            console.error('Error adding to cart:', error);
-            Swal.fire({
-              icon: 'error',
-              title: 'Oops...',
-              text: 'Failed to add product to cart',
-            });
-          });
+            body: JSON.stringify({ productId, quantity }),
+        });
+
+        if (response.status === 401) {
+            window.location.href = "/login";
+            return;
         }
+
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Success!",
+                text: data.message,
+            });
+
+            updateCartCount(data.cartItemCount);
+        } else {
+            if (data.message === 'Not enough stock available') {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: `Sorry, only ${data.availableStock} items are available in stock.`,
+                });
+            } else {
+                throw new Error(data.message || "Failed to add product to cart");
+            }
+        }
+    } catch (error) {
+        console.error("Error adding product to cart:", error);
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: error.message || "Failed to add product to cart",
+        });
+    }
+}
     
         document.querySelectorAll('.add-to-cart').forEach(button => {
           button.addEventListener('click', function(e) {
