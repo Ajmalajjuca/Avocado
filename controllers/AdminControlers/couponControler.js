@@ -10,7 +10,9 @@ const getCoupon = async ( req,res)=>{
                 activePage: 'coupon',
                 admin:admin.username,
                 coupons:coupons})
-        }
+              } else {
+                res.redirect("/admin");
+              }
     } catch (error) {
         console.log(error);
         

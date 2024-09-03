@@ -6,7 +6,7 @@ const profileController = require("../controllers/UserControlers/profileControll
 const addressController = require("../controllers/UserControlers/addressController")
 const cartController =require("../controllers/UserControlers/cartController")
 const checkoutController = require("../controllers/UserControlers/checkoutController")
-const { findCartByUser, authMiddleware } = require('../Middleware');
+const { findCartByUser,authForCartAndWishlistMiddleware, authMiddleware } = require('../Middleware');
 const passport = require("passport");
 const userModel = require("../models/userModel");
 const orderController = require('../controllers/UserControlers/ordercontroler')
@@ -74,7 +74,7 @@ router.get('/address/:id', addressController.getEditAddress);
 
 //cart
 router.get('/cart', authMiddleware, findCartByUser, cartController.getcart);
-router.post('/cart/add', authMiddleware, findCartByUser, cartController.postcart);
+router.post('/cart/add', authForCartAndWishlistMiddleware, findCartByUser, cartController.postcart);
 router.post('/cart/remove', authMiddleware, findCartByUser, cartController.postremove);
 router.post('/cart/update', authMiddleware, findCartByUser, cartController.postupdate);
 router.get('/cart/count', authMiddleware, findCartByUser, cartController.cartcount);
@@ -109,7 +109,7 @@ router.post('/cancel-product', orderController.cancelproduct);
 
 //Wishlist
 router.get('/wishlist', authMiddleware, wishlistController.getWishlist);
-router.post('/wishlist/add', authMiddleware, wishlistController.addToWishlist);
+router.post('/wishlist/add', authForCartAndWishlistMiddleware, wishlistController.addToWishlist);
 router.post('/wishlist/remove', authMiddleware, wishlistController.removeFromWishlist);
 router.post('/wishlist/move-to-cart', authMiddleware, wishlistController.moveToCart);
 router.get('/wishlist/count', authMiddleware, wishlistController.getWishlistCount);

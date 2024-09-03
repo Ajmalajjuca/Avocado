@@ -10,7 +10,9 @@ const postcart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
     const product = await productModel.findById(productId);
-
+    if(!req.session.isAuth){
+      return res.status(404).json({ success: false, message: 'Please login and try', availableStock: product.stock });
+    }
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
@@ -36,9 +38,12 @@ const postcart = async (req, res) => {
     const productIndex = cart.items.findIndex(item =>
       item.productId.toString() === productId 
     );
+    console.log('product indux is >>>',productIndex);
+    
 
     if (productIndex > -1) {
       // Update existing item
+      console.log("object");
       const newQuantity = Number(cart.items[productIndex].quantity) + Number(quantity);
       if (newQuantity > product.stock) {
         return res.status(400).json({ success: false, message: 'Not enough stock available', availableStock: product.stock });
@@ -74,7 +79,7 @@ const postcart = async (req, res) => {
 
     const cartItemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
 
-    res.status(200).json({ success: true, message: 'Product added to cart successfully', cartItemCount });  
+    return res.status(200).json({ success: true, message: 'Product added to cart successfully', cartItemCount });  
   } catch (error) {
     console.error('Server error:', error);
     if (error.name === 'ValidationError') {

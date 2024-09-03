@@ -7,6 +7,8 @@ const userController = require("../controllers/AdminControlers/showuserControler
 const orderControler = require('../controllers/AdminControlers/orderControler')
 const couponControler = require('../controllers/AdminControlers/couponControler') 
 const offerController = require('../controllers/AdminControlers/offerController')
+const { adminAuthMiddleware } = require('../Middleware');
+
 const multer = require('multer');
 const path = require('path');
 
@@ -39,19 +41,19 @@ const upload = multer({
   fileFilter: fileFilter 
 });
 
-router.get("/", adminControl.getLogin);
+router.get("/",adminControl.getLogin);
 router.post("/login", adminControl.postLogin);
 router.get("/dashboard", adminControl.getDashboard);
 router.get("/admin/logout",adminControl.getLogout)
 router.post('/generate-report',adminControl.generateReport) 
 router.get('/report',adminControl.report);
 router.get('/download-report',adminControl.downloadReport);
-router.get('/sales-data', adminControl.getSalesData);
+router.get('/sales-data', adminAuthMiddleware,adminControl.getSalesData);
 
 // router.get("/orders", adminControl.getOrders);
 
 //Products
-router.get('/products', productController.getProducts);
+router.get('/products', adminAuthMiddleware,productController.getProducts);
 router.get('/addProducts', productController.getAddProduct);
 router.post('/addProducts', upload.array('images', 10), productController.addProduct); // Handle up to 10 files
 
@@ -68,7 +70,7 @@ router.post("/createCategory",categorieController.postCreateCategory)
 router.get("/category/:id/edit",categorieController.getEditCategories)
 router.post('/categories/:id/edit', categorieController.updateCategory);
 router.patch('/category/:id/block',categorieController.blockcategory);
-router.get('/admin/checkCategoryName/:name',categorieController. checkCategoryName);
+// router.get('/admin/checkCategoryName/:name',categorieController. checkCategoryName);
 
 
 
@@ -94,7 +96,7 @@ router.get('/orders/:orderId/details', orderControler.orderDetails);
 
 router.get('/coupon',couponControler.getCoupon);
 router.post('/createCoupon',couponControler.postCreateCoupon)
-router.get('/editCoupon/:id',couponControler.getEditCoupon)
+router.get('/editCoupon/:id',adminAuthMiddleware,couponControler.getEditCoupon)
 router.post('/updateCoupon/:id',couponControler.updateCoupon)
 router.patch('/coupons/:id/toggleStatus',couponControler.updatestatus)
 

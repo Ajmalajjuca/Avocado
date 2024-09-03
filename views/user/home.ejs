@@ -360,10 +360,6 @@
             body: JSON.stringify({ productId, quantity }),
         });
 
-        if (response.status === 401) {
-            window.location.href = "/login";
-            return;
-        }
 
         const data = await response.json();
 
@@ -443,10 +439,7 @@
         body: JSON.stringify({ productId }),
       });
 
-      if (response.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
+      
 
       const data = await response.json();
 
@@ -469,6 +462,7 @@
         title: "Oops...",
         text: error.message || "Failed to add product to wishlist",
       });
+      
     }
   }
 

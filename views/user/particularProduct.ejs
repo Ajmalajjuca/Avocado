@@ -200,10 +200,10 @@
             body: JSON.stringify({ productId, quantity }),
         });
 
-        if (response.status === 401) {
-            window.location.href = "/login";
-            return;
-        }
+        // if (response.status === 401) {
+        //     window.location.href = "/login";
+        //     return;
+        // }
 
         const data = await response.json();
 
@@ -246,10 +246,10 @@ async function addToWishlist(productId) {
         body: JSON.stringify({ productId }),
       });
 
-      if (response.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
+      // if (response.status === 401) {
+      //   window.location.href = "/login";
+      //   return;
+      // }
 
       const data = await response.json();
 

@@ -16,10 +16,9 @@ const bcrypt = require("bcrypt");
 const getLogin = async (req, res) => {
         try{
                 if (req.session.isAdmin) {
-                        const user = await userModel.findOne({email:req.session.user.email})
-                        res.redirect("/admin/dashboard",{user:user.username});
+                        return res.redirect("/admin/dashboard");
                       } else {
-                        res.render("admin/adminLogin",{error:req.flash("error")});
+                       return res.render("admin/adminLogin",{error:req.flash("error")});
                       }
         }catch(err){
                 console.log("rendering error:",err);     
@@ -309,6 +308,7 @@ const downloadReport = (req, res) => {
   const format = req.query.format;
 
   if (!report) {
+    res.redirect("/admin/dashboard")
     return res.status(400).send('No report data available');
   }
 

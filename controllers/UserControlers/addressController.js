@@ -7,7 +7,7 @@ const getAddresses = async (req, res) => {
     try {
         let userId;
         let user;
-
+        if(req.session.isAuth){
         if (req.user && req.user.id) {
             userId = req.user.id;
             user = await userModal.findById(userId);
@@ -24,6 +24,9 @@ const getAddresses = async (req, res) => {
             return res.render('user/address', { user: user.username, userData: { address: [] } });
         }
         res.render('user/address', { user: user.username, userData: addresses });
+     } else{
+        res.redirect('/login',)
+      }
     } catch (error) {
         console.error(error);
         res.status(500).send('Server Error');
@@ -32,8 +35,13 @@ const getAddresses = async (req, res) => {
 
 const getAddAddresses = async (req, res) => {
     try {
+        
+        if(req.session.isAuth){
         const user = await userModal.findOne({ email: req.session.user.email });
         res.render("user/addAddress", { user: user.username,apiKey });
+    } else{
+        res.redirect('/login',)
+      }
     } catch (error) {
         res.status(500).send('Server Error');
     }
@@ -103,6 +111,7 @@ const addAddress = async (req, res) => {
 
 const getEditAddress = async (req, res) => {
     try {
+        if(req.session.isAuth){
         const messages = {
             error: req.flash('error'),
             info: req.flash('info'),
@@ -122,7 +131,11 @@ const getEditAddress = async (req, res) => {
             user: user.username,
             messages,
         });
-    } catch (error) {
+    } 
+ else{
+    res.redirect('/login',)
+  }
+}catch (error) {
         console.error(error);
         res.status(500).send('Server Error');
     }

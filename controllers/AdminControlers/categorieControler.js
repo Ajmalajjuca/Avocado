@@ -195,26 +195,26 @@ const postCreateCategory = async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
-  const checkCategoryName = async (req, res) => {
-    const categoryName = req.params.name.toLowerCase();
-    try {
-      const category = await categoriesModel.findOne({
-        name: new RegExp(`^${categoryName}$`, 'i')
-      });
+  // const checkCategoryName = async (req, res) => {
+  //   const categoryName = req.params.name.toLowerCase();
+  //   try {
+  //     const category = await categoriesModel.findOne({
+  //       name: new RegExp(`^${categoryName}$`, 'i')
+  //     });
   
-      if (category) {
-        res.json({ exists: true, categoryId: category._id });
-      } else {
-        res.json({ exists: false });
-      }
-    } catch (error) {
-      console.error('Error checking category name:', error);
-      res.status(500).send('Server Error');
-    }
-  };
+  //     if (category) {
+  //       res.json({ exists: true, categoryId: category._id });
+  //     } else {
+  //       res.json({ exists: false });
+  //     }
+  //   } catch (error) {
+  //     console.error('Error checking category name:', error);
+  //     res.status(500).send('Server Error');
+  //   }
+  // };
   
   
   
 
 
-module.exports = { getCategories, postCreateCategory,getEditCategories,updateCategory, blockcategory,checkCategoryName};
+module.exports = { getCategories, postCreateCategory,getEditCategories,updateCategory, blockcategory};

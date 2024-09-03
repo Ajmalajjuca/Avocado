@@ -114,9 +114,15 @@ require('dotenv').config();
   // Admin routes
   app.use("/admin",adminRouter); 
 
-  app.use((req, res, next) => {
+  app.use("/admin", (req, res, next) => {
+    res.status(404).render('admin/404Error', { title: '404 - Page Not Found' });
+  });
+
+  app.use('/',(req, res, next) => {
     res.status(404).render('user/404Error', { title: '404 - Page Not Found' });
   });
+
+
 
   app.use((req, res, next) => {
     res.locals.messages = req.flash();

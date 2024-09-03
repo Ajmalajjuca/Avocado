@@ -4,6 +4,7 @@ const categorieModel = require('../../models/categorieModel')
 
 const getAllOffers = async (req, res) => {
   try {
+    if (req.session.isAdmin) {
     const admin = req.session.admin;
     const offers = await offerModele.find()
       .populate('productId')
@@ -13,8 +14,13 @@ const getAllOffers = async (req, res) => {
       const products = await productModel.find({ status: true });
 
     res.render('admin/offers', { offers, categories, products, activePage: 'offer',admin:admin.username,});
+  } else {
+    redirect("/admin");
+  }
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching offers', error: error.message });
+    console.error('get offer error',error)
+    req.flash("error", "something Went Wrong");
+    return res.redirect("/admin");
   }
 };
 

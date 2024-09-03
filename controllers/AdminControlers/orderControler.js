@@ -59,7 +59,7 @@ const getAllOrders = async (req, res) => {
            activePage: 'orders'
         });
       } else {
-        res.redirect("/admin/orders");
+        res.redirect("/admin");
       }
     } catch (error) {
       console.error('Error fetching orders:', error);

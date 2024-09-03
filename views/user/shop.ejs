@@ -570,10 +570,10 @@
             body: JSON.stringify({ productId, quantity }),
         });
 
-        if (response.status === 401) {
-            window.location.href = "/login";
-            return;
-        }
+        // if (response.status === 401) {
+        //     window.location.href = "/login";
+        //     return;
+        // }
 
         const data = await response.json();
 
@@ -645,7 +645,7 @@
               Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: 'Failed to add product to wishlist',
+                text: data.message||'Failed to add product to wishlist',
               });
             }
           })
