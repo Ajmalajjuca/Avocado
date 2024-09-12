@@ -38,7 +38,6 @@ const placeOrder = async (req, res) => {
   try {
     const { addressId, paymentMethod,totalSavings } = req.body;
     const cart = req.cart;
-console.log('addressId>>>',addressId);
 
     let shippingAddress;
 
@@ -159,9 +158,7 @@ console.log('addressId>>>',addressId);
         });
         }
 
-      console.log('paramsss is>>>>>',razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature);
+
       
       const isPaymentVerified = verifyRazorpayPayment(
         razorpay_order_id,
@@ -169,7 +166,6 @@ console.log('addressId>>>',addressId);
         razorpay_signature
       );
 
-      console.log('isPayment verified is>>>>',isPaymentVerified);
       
 
       if (!isPaymentVerified) {
@@ -252,7 +248,7 @@ const verifyRazorpayPayment = (
   razorpay_order_id,
   razorpay_payment_id,
   razorpay_signature
-) => {
+) => {  
   const sign = razorpay_order_id + "|" + razorpay_payment_id;
   const expectedSignature = crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)

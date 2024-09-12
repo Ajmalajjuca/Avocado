@@ -10,7 +10,7 @@
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/user/img/favicon.ico" />
 
     <!-- Css Styles -->
     <link rel="stylesheet" href="/user/css/bootstrap.min.css" type="text/css">
@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="/user/css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="/user/css/style.css" type="text/css">
     <link rel="stylesheet" href="/user/magiczoomplus/magiczoomplus.css">
+    
 
     <style>
         .qtybtn.disabled {
@@ -168,7 +169,7 @@
                         <% if (product.rating % 1 !== 0) { %>
                             <i class="fa fa-star-half-o"></i>
                         <% } %>
-                        <span>(reviews)</span>
+                        <span>⭐⭐⭐⭐</span>
                     </div>
                     <div class="product__details__price">
                         <% if (product.offer) { %>
@@ -214,41 +215,7 @@
                 </div>
             </div>
             
-            <div class="col-lg-12">
-                <div class="product__details__tab">
-                    <ul class="nav nav-tabs" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" data-toggle="tab" href="#tabs-1" role="tab" aria-selected="true">Description</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="tab" href="#tabs-2" role="tab" aria-selected="false">Information</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="tab" href="#tabs-3" role="tab" aria-selected="false">Reviews <span> product.reviews.length </span></a>
-                        </li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane active" id="tabs-1" role="tabpanel">
-                            <div class="product__details__tab__desc">
-                                <h6>Product Information</h6>
-                                <p><%= product.longDescription %></p>
-                            </div>
-                        </div>
-                        <div class="tab-pane" id="tabs-2" role="tabpanel">
-                            <div class="product__details__tab__desc">
-                                <h6>Additional Information</h6>
-                                <p><%= product.additionalInfo %></p>
-                            </div>
-                        </div>
-                        <div class="tab-pane" id="tabs-3" role="tabpanel">
-                            <div class="product__details__tab__desc">
-                                <h6>Reviews</h6>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
         </div>
     </div>
 </section>
@@ -423,22 +390,30 @@ async function addToWishlist(productId) {
         body: JSON.stringify({ productId }),
       });
 
-      // if (response.status === 401) {
-      //   window.location.href = "/login";
-      //   return;
-      // }
+      
 
       const data = await response.json();
 
       if (response.ok) {
-            showToast('success', data.message);
-            updateCartCount(data.cartItemCount);
-        } else {
-            throw new Error(data.message || 'Failed to add product to cart');
-        }
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: data.message,
+        });
+        
+
+        // Optionally, you can update the UI here
+      } else {
+        throw new Error(data.message || "Failed to add product to wishlist");
+      }
     } catch (error) {
-        console.error('Error adding product to cart:', error);
-        showToast('error', error.message || 'Failed to add product to cart');
+      console.error("Error adding product to wishlist:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: error.message || "Failed to add product to wishlist",
+      });
+      
     }
   }
 </script>

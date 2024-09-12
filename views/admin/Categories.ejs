@@ -220,6 +220,7 @@
             cancelButtonText: "No, cancel",
           }).then((result) => {
             if (result.isConfirmed) {
+
               fetch("/admin/createCategory", {
                 method: "POST",
                 headers: {
@@ -303,7 +304,11 @@
 
     // Check if the category name is unique
     fetch(`/admin/checkCategoryName/${categoryName}`)
+    console.log("chekking catagory name>>>>>>>>>>>>")
+    
       .then(response => response.json())
+      
+      
       .then(data => {
         if (data.exists && data.categoryId !== categoryId) {
           Swal.fire("Error!", "Category name already exists.", "error");

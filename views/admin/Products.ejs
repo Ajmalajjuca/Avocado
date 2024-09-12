@@ -1,6 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
   <%- include('partials/head.ejs') %>
+  <style>
+    @media (max-width: 767px) {
+      .table-responsive-stack tr {
+        display: flex;
+        flex-wrap: wrap;
+        border: 1px solid #ccc;
+        margin-bottom: 1em;
+        padding: 0.5em;
+      }
+      .table-responsive-stack td {
+        flex: 0 0 50%;
+        border: none;
+        padding: 0.2em;
+      }
+      .table-responsive-stack td:nth-child(1) {
+        flex: 0 0 100%;
+        font-weight: bold;
+        font-size: 1.1em;
+        margin-bottom: 0.5em;
+      }
+      .table-responsive-stack td:nth-child(6) {
+        flex: 0 0 100%;
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.5em;
+      }
+      .table-responsive-stack th {
+        display: none;
+      }
+      .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+      }
+      .btn-group {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+      }
+      .btn-group .btn {
+        margin-left: 0.25rem;
+      }
+      .content-header .col-12 {
+        text-align: right;
+      }
+    }
+  </style>
 
   <body>
     <%- include('partials/side.ejs') %>
@@ -11,115 +57,136 @@
       <%- include('partials/heder.ejs') %>
       <section class="content-main">
         <div class="content-header">
-          <div>
-            <h2 class="content-title card-title">Products List</h2>
-            <p>Lorem ipsum dolor sit amet.</p>
+          <div class="row">
+            <div class="col-12 col-md-6">
+              <h2 class="content-title card-title">Products List</h2>
+              
+            </div>
+            
           </div>
           <div>
-            <a href="#" class="btn btn-light rounded font-md">Export</a>
-            <a href="#" class="btn btn-light rounded font-md">Import</a>
             <a href="addProducts" class="btn btn-primary btn-sm rounded">Create new</a>
           </div>
         </div>
         <div class="card mb-4">
           <header class="card-header">
-            <!-- Header content remains unchanged -->
+            <div class="row gx-3">
+              <div class="col-lg-4 col-md-6 me-auto">
+                <input type="text" placeholder="Search..." class="form-control" id="search-input">
+              </div>
+              <div class="col-lg-2 col-md-3 col-6">
+                <select class="form-select">
+                  <option>Status</option>
+                  <option>Active</option>
+                  <option>Disabled</option>
+                  <option>Show all</option>
+                </select>
+              </div>
+              <div class="col-lg-2 col-md-3 col-6">
+                <select class="form-select">
+                  <option>Show 20</option>
+                  <option>Show 30</option>
+                  <option>Show 40</option>
+                </select>
+              </div>
+            </div>
           </header>
           <div class="card-body">
-            <div id="product-list">
-              <% if (products.length > 0) { %>
-                <div class="row align-items-center mb-3 font-weight-bold">
-                  <div class="col-lg-4 col-sm-4 col-8">Product</div>
-                  <div class="col-lg-2 col-sm-2 col-4">Price</div>
-                  <div class="col-lg-2 col-sm-2 col-4">Status</div>
-                  <div class="col-lg-1 col-sm-2 col-4">Stock</div>
-                  <div class="col-lg-1 col-sm-2 col-4">Date</div>
-                  <div class="col-lg-2 col-sm-2 col-4 text-end">Action</div>
-                </div>
-                <% products.forEach(product => { %>
-                  <article class="itemlist">
-                    <div class="row align-items-center">
-                      <div class="col-lg-4 col-sm-4 col-8 flex-grow-1 col-name">
-                        <a class="itemside" href="#">
-                          <div class="left">
-                            <img src="<%= product.images[0] %>" class="img-sm img-thumbnail" alt="<%= product.name %>">
+            <div class="table-responsive-stack">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Product</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Stock</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="product-list">
+                  <% if (products.length > 0) { %>
+                    <% products.forEach(product => { %>
+                      <tr>
+                        <td>
+                          <a class="itemside" href="#">
+                            <div class="left">
+                              <img src="<%= product.images[0] %>" class="img-sm img-thumbnail" alt="<%= product.name %>">
+                            </div>
+                            <div class="info pl-2">
+                              <h6 class="mb-0"><%= product.name %></h6>
+                            </div>
+                          </a>
+                        </td>
+                        <td>₹ <%= product.price %> <%= product.currency %></td>
+                        <td>
+                          <span class="badge rounded-pill alert-<%= product.status ? 'success' : 'danger' %>">
+                            <%= product.status ? 'Active' : 'Disabled' %>
+                          </span>
+                        </td>
+                        <td><%= product.stock || 'N/A' %></td>
+                        <td><%= new Date(product.createdAt).toLocaleDateString() %></td>
+                        <td>
+                          <div class="btn-group">
+                            <a href="#" class="btn btn-sm font-sm rounded btn-brand" onclick="editProduct('<%= product._id %>')">
+                              <i class="material-icons md-edit"></i> Edit
+                            </a>
+                            <a href="#" class="btn btn-sm font-sm btn-light rounded" onclick="deleteProduct('<%= product._id %>')">
+                              <i class="material-icons md-delete_forever"></i> Delete
+                            </a>
+                            <a href="#" class="btn btn-sm font-sm btn-light rounded" onclick="blockProduct('<%= product._id %>')">
+                              <%= product.status ? 'Unlist' : 'List' %>
+                            </a>
                           </div>
-                          <div class="info">
-                            <h6 class="mb-0"><%= product.name %></h6>
-                          </div>
-                        </a>
-                      </div>
-                      <div class="col-lg-2 col-sm-2 col-4 col-price">
-                        <span>₹ <%= product.price %> <%= product.currency %></span>
-                      </div>
-                      <div class="col-lg-2 col-sm-2 col-4 col-status">
-                        <span class="badge rounded-pill alert-<%= product.status ? 'success' : 'danger' %>"><%= product.status ? 'Active' : 'Disabled' %></span>
-                      </div>
-                      <div class="col-lg-1 col-sm-2 col-4 col-stock">
-                        <span><%= product.stock || 'N/A' %></span>
-                      </div>
-                      <div class="col-lg-1 col-sm-2 col-4 col-date">
-                        <span><%= new Date(product.createdAt).toLocaleDateString() %></span>
-                      </div>
-                      <div class="col-lg-2 col-sm-2 col-4 col-action text-end">
-                        <a href="#" class="btn btn-sm font-sm rounded btn-brand" onclick="editProduct('<%= product._id %>')">
-                          <i class="material-icons md-edit"></i> Edit
-                        </a>
-                        <a href="#" class="btn btn-sm font-sm btn-light rounded" onclick="deleteProduct('<%= product._id %>')">
-                          <i class="material-icons md-delete_forever"></i> Delete
-                        </a>
-                        <a href="#" class="btn btn-sm font-sm btn-light rounded" onclick="blockProduct('<%= product._id %>')">
-                          <%= product.status ? 'Unlist' : 'List' %>
-                        </a>
-                      </div>
-                    </div>
-                  </article>
-                <% }) %>
-              <% } else { %>
-                <p>No products available</p>
-              <% } %>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="6" class="text-center">No products available</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
         
         <!-- Pagination Area -->
-        <div id="pagination" class="pagination-area mt-15 mb-50">
+        <div class="pagination-area mt-15 mb-50">
           <nav aria-label="Page navigation example">
-              <ul class="pagination justify-content-start">
-                  <% if (currentPage > 1) { %>
-                      <li class="page-item">
-                          <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= search %>">
-                              <i class="material-icons md-chevron_left"></i>
-                          </a>
-                      </li>
-                  <% } %>
-      
-                  <% for (let i = 1; i <= totalPages; i++) { %>
-                      <% if (i === currentPage) { %>
-                          <li class="page-item active">
-                              <a class="page-link" href="#"><%= i %></a>
-                          </li>
-                      <% } else { %>
-                          <li class="page-item">
-                              <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
-                          </li>
-                      <% } %>
-                  <% } %>
-      
-                  <% if (currentPage < totalPages) { %>
-                      <li class="page-item">
-                          <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= search %>">
-                              <i class="material-icons md-chevron_right"></i>
-                          </a>
-                      </li>
-                  <% } %>
-              </ul>
+            <ul class="pagination justify-content-start">
+              <% if (currentPage > 1) { %>
+                <li class="page-item">
+                  <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= search %>">
+                    <i class="material-icons md-chevron_left"></i>
+                  </a>
+                </li>
+              <% } %>
+    
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                <% if (i === currentPage) { %>
+                  <li class="page-item active">
+                    <a class="page-link" href="#"><%= i %></a>
+                  </li>
+                <% } else { %>
+                  <li class="page-item">
+                    <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
+                  </li>
+                <% } %>
+              <% } %>
+    
+              <% if (currentPage < totalPages) { %>
+                <li class="page-item">
+                  <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= search %>">
+                    <i class="material-icons md-chevron_right"></i>
+                  </a>
+                </li>
+              <% } %>
+            </ul>
           </nav>
-      </div>
-           
-
+        </div>
       </section>
-      <!-- content-main end// -->
     </main>
 
     <script>

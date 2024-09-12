@@ -3,7 +3,7 @@ const userModel = require("../../models/userModel");
 
 const getCategories = async (req, res) => {
   try {
-    if (req.session.isAdmin) {
+    
       const users = await userModel.findOne({ isAdmin: false });
       const admin = req.session.admin;
       const updateSuccess = req.flash("update Success");
@@ -18,9 +18,7 @@ const getCategories = async (req, res) => {
         updateSuccess,
         activePage: 'categories'
       });
-    } else {
-      redirect("/admin");
-    }
+    
   } catch (err) {
     console.error("Error accuerd is getDashbard", err);
     req.flash("error", "something Went Wrong");
@@ -32,6 +30,8 @@ const postCreateCategory = async (req, res) => {
   try {
     if (req.session.isAdmin) {
       const { CategoryName, CategoryDescription } = req.body;
+      console.log("CategoryName>>>>",CategoryName,"CategoryDescription>>>>>",CategoryDescription);
+      
       
       // Validation regex patterns
       const nameRegex = /^[a-zA-Z\s]*$/; // Allows only letters and spaces
@@ -168,11 +168,6 @@ const postCreateCategory = async (req, res) => {
   };
   
   
-  
-
-   
-  
-
   const blockcategory = async (req, res) => {
     try {
       if (req.session.isAdmin) {
@@ -195,26 +190,29 @@ const postCreateCategory = async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
-  // const checkCategoryName = async (req, res) => {
-  //   const categoryName = req.params.name.toLowerCase();
-  //   try {
-  //     const category = await categoriesModel.findOne({
-  //       name: new RegExp(`^${categoryName}$`, 'i')
-  //     });
+
+
+  const checkCategoryName = async (req, res) => {
+    const categoryName = req.params.name.toLowerCase();
+    
+    try {
+      const category = await categoriesModel.findOne({
+        name: new RegExp(`^${categoryName}$`, 'i')
+      });
   
-  //     if (category) {
-  //       res.json({ exists: true, categoryId: category._id });
-  //     } else {
-  //       res.json({ exists: false });
-  //     }
-  //   } catch (error) {
-  //     console.error('Error checking category name:', error);
-  //     res.status(500).send('Server Error');
-  //   }
-  // };
+      if (category) {
+        res.json({ exists: true, categoryId: category._id });
+      } else {
+        res.json({ exists: false });
+      }
+    } catch (error) {
+      console.error('Error checking category name:', error);
+      res.status(500).send('Server Error');
+    }
+  };
   
   
   
 
 
-module.exports = { getCategories, postCreateCategory,getEditCategories,updateCategory, blockcategory};
+module.exports = { getCategories, postCreateCategory,getEditCategories,updateCategory, blockcategory,checkCategoryName};

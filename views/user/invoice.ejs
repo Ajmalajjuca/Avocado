@@ -171,7 +171,6 @@
       <thead>
         <tr>
           <th>ITEM</th>
-          <th>CATEGORY</th>
           <th>COST</th>
           <th>QTY</th>
           <th>PRICE</th>
@@ -181,7 +180,6 @@
         <% order.items.forEach(item => { %>
         <tr>
           <td><%= item.productId.name %></td>
-          <td><%= item.productId.category %></td>
           <td><%= item.price %></td>
           <td><%= item.quantity %></td>
           <td><%= item.price * item.quantity %></td>

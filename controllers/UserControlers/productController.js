@@ -1,11 +1,13 @@
 const productModel = require('../../models/productModel');
 const categoriesModel = require("../../models/categorieModel")
 const offerModel = require('../../models/offersModel');
+const userModal = require('../../models/userModel')
 
 
 
 const getProductDetails = async (req, res) => {
     try {
+      if (req.session.isAuth) {
       const productId = req.params.id;
       const product = await productModel.findById(productId).populate('category').exec();
       const categories = await categoriesModel.find({ status: true });
@@ -14,6 +16,7 @@ const getProductDetails = async (req, res) => {
         category: product.category,
         _id: { $ne: product._id }
       }).limit(4);
+      const user = await userModal.findOne({ email: req.session.user.email});
   
       if (!product) {
         return res.status(404).render('404', { pageTitle: 'Product Not Found' });
@@ -53,8 +56,60 @@ const getProductDetails = async (req, res) => {
         product: productWithOffer,
         products: products,
         categories: categories,
-        relatedProducts: relatedProductsWithOffers
+        relatedProducts: relatedProductsWithOffers,
+        user: user.username,
       });
+    }else{
+      const productId = req.params.id;
+      const product = await productModel.findById(productId).populate('category').exec();
+      const categories = await categoriesModel.find({ status: true });
+      const products = await productModel.find({ status: true });
+      const relatedProducts = await productModel.find({
+        category: product.category,
+        _id: { $ne: product._id }
+      }).limit(4);
+  
+      if (!product) {
+        return res.status(404).render('404', { pageTitle: 'Product Not Found' });
+      }
+  
+      // Fetch active offers
+      const activeOffers = await offerModel.find({
+        startDate: { $lte: new Date() },
+        endDate: { $gte: new Date() }
+      });
+
+      const applyOffers = (products) => {
+        return products.map(product => {
+          const applicableOffer = activeOffers.find(offer =>
+            (offer.offerType === 'product' && offer.productId.toString() === product._id.toString()) ||
+            (offer.offerType === 'category' && offer.categoryId.toString() === product.category._id.toString())
+          );
+  
+          if (applicableOffer) {
+            const discountedPrice = product.price * (1 - applicableOffer.discount / 100);
+            return {
+              ...product.toObject(),
+              offerPrice: discountedPrice,
+              offer: applicableOffer
+            };
+          }
+  
+          return product;
+        });
+      };
+
+      const productWithOffer = applyOffers([product])[0];
+      const relatedProductsWithOffers = applyOffers(relatedProducts);
+
+      res.render('user/productDetails', {
+        product: productWithOffer,
+        products: products,
+        categories: categories,
+        relatedProducts: relatedProductsWithOffers,
+        
+    });
+    }
     } catch (error) {
       console.error('Error fetching product details:', error);
       res.render("user/404Error");

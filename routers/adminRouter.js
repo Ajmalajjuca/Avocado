@@ -43,7 +43,7 @@ const upload = multer({
 
 router.get("/",adminControl.getLogin);
 router.post("/login", adminControl.postLogin);
-router.get("/dashboard", adminControl.getDashboard);
+router.get("/dashboard", adminAuthMiddleware,adminControl.getDashboard);
 router.get("/admin/logout",adminControl.getLogout)
 router.post('/generate-report',adminControl.generateReport) 
 router.get('/report',adminControl.report);
@@ -65,12 +65,12 @@ router.patch('/products/:productId/block', productController.blockUnblockProduct
 
 
 //categories
-router.get("/categories",categorieController.getCategories);
+router.get("/categories",adminAuthMiddleware,categorieController.getCategories);
 router.post("/createCategory",categorieController.postCreateCategory)
 router.get("/category/:id/edit",categorieController.getEditCategories)
 router.post('/categories/:id/edit', categorieController.updateCategory);
 router.patch('/category/:id/block',categorieController.blockcategory);
-// router.get('/admin/checkCategoryName/:name',categorieController. checkCategoryName);
+router.get('/checkCategoryName/:name',categorieController. checkCategoryName);
 
 
 

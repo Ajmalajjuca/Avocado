@@ -27,7 +27,7 @@ router.post('/submit-contact', userController.submitContact);
 router.get('/about',userController.getabout);
 
 
-router.get('/profile', userController.getProfile);
+router.get('/profile', authMiddleware,userController.getProfile);
 // router.get('/addresses',  userController.getUserAddresses);
 router.get("/logout",userController.getlogout)
 router.post('/resend-otp', userController.resendotp);
@@ -51,7 +51,7 @@ router.get('/reset/:token', (req, res) => {
 router.post('/reset-password', userController.resetPassword);
 
 //product
-router.get("/product/:id", productController.getProductDetails);
+router.get("/product/:id",productController.getProductDetails);
 
 //Category
 router.get("/categories/:id",productController.getcategoriesProduct)
@@ -80,6 +80,7 @@ router.post('/cart/update', authMiddleware, findCartByUser, cartController.postu
 router.get('/cart/count', authMiddleware, findCartByUser, cartController.cartcount);
 router.post('/cart/apply-coupon',authMiddleware,findCartByUser,cartController.applyCoupon)
 router.get('/product/check-stock/:productId/:quantity',authMiddleware,findCartByUser,cartController.checkStock);
+router.post('/cart/remove-coupon',authMiddleware,cartController.removeCoupon);
 
 //checkout
 router.get('/checkout', authMiddleware, findCartByUser,checkoutController.getcheckout)

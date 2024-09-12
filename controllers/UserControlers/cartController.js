@@ -35,15 +35,20 @@ const postcart = async (req, res) => {
 
     const cart = req.cart;
 
-    const productIndex = cart.items.findIndex(item =>
-      item.productId.toString() === productId 
-    );
-    console.log('product indux is >>>',productIndex);
-    
+    console.log('Cart items before findIndex:', JSON.stringify(cart.items, null, 2));
+    console.log('Looking for productId:', productId);
+
+    const productIndex = cart.items.findIndex(item => {
+      console.log('Comparing item.productId:', item.productId, 'with productId:', productId);
+      console.log('Types - item.productId:', typeof item.productId, 'productId:', typeof productId);
+      return item.productId._id.toString() === productId;
+    });
+
+    console.log('Product index is >>>', productIndex);
 
     if (productIndex > -1) {
       // Update existing item
-      console.log("object");
+      console.log("Updating existing item");
       const newQuantity = Number(cart.items[productIndex].quantity) + Number(quantity);
       if (newQuantity > product.stock) {
         return res.status(400).json({ success: false, message: 'Not enough stock available', availableStock: product.stock });
@@ -54,6 +59,7 @@ const postcart = async (req, res) => {
       cart.items[productIndex].stock = product.stock;
     } else {
       // Add new item
+      console.log("Adding new item to cart");
       cart.items.push({
         productId: product._id,
         quantity: Number(quantity),
@@ -63,31 +69,31 @@ const postcart = async (req, res) => {
       });
     }
 
-    // Recalculate Cart_total
-    cart.Cart_total = Number(cart.items.reduce((sum, item) => sum + (item.Product_total || 0), 0).toFixed(2));
+      // Recalculate Cart_total
+      cart.Cart_total = Number(cart.items.reduce((sum, item) => sum + (item.Product_total || 0), 0).toFixed(2));
 
-    // Validate cart before saving
-    const validationError = cart.validateSync();
-    if (validationError) {
-      console.error('Validation error:', validationError);
-      return res.status(400).json({ success: false, message: 'Validation error', errors: validationError.errors });
+      // Validate cart before saving
+      const validationError = cart.validateSync();
+      if (validationError) {
+        console.error('Validation error:', validationError);
+        return res.status(400).json({ success: false, message: 'Validation error', errors: validationError.errors });
+      }
+
+      
+      await product.save();
+      await cart.save();
+
+      const cartItemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+
+      return res.status(200).json({ success: true, message: 'Product added to cart successfully', cartItemCount });  
+    } catch (error) {
+      console.error('Server error:', error);
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ success: false, message: 'Validation error', errors: error.errors });
+      }
+      res.status(500).json({ success: false, message: 'Error adding product to cart' });
     }
-
-    
-    await product.save();
-    await cart.save();
-
-    const cartItemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-
-    return res.status(200).json({ success: true, message: 'Product added to cart successfully', cartItemCount });  
-  } catch (error) {
-    console.error('Server error:', error);
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ success: false, message: 'Validation error', errors: error.errors });
-    }
-    res.status(500).json({ success: false, message: 'Error adding product to cart' });
-  }
-};
+  };
   
   const getcart = async (req, res) => {
     try {
@@ -187,16 +193,17 @@ const applyCoupon = async (req, res) => {
       throw new Error('Cart not found');
     }
 
-    const originalSubtotal = cart.Cart_total;
+    // Check if a coupon is already applied
+    if (cart.appliedCoupon) {
+      throw new Error('A coupon is already applied. Please remove it first.');
+    }
 
-    // Validate the coupon code and calculate the discount
-    const discountAmount = await validateAndCalculateDiscount(couponCode, originalSubtotal);
-    
-    // Apply the discount to the cart
+    const totalBeforeDiscount = cart.items.reduce((total, item) => {
+      return total + (item.price * item.quantity);
+    }, 0);
+
+    const { discountAmount, coupon } = await validateAndCalculateDiscount(couponCode, totalBeforeDiscount);
     const updatedCart = await applyDiscountToCart(userId, discountAmount, couponCode);
-
-    // Ensure the updatedCart includes the original subtotal
-    updatedCart.originalSubtotal = originalSubtotal;
 
     res.json({ success: true, cart: updatedCart });
   } catch (error) {
@@ -204,57 +211,43 @@ const applyCoupon = async (req, res) => {
   }
 };
 
-
 async function validateAndCalculateDiscount(couponCode, cartTotal) {
-  // Find the coupon in the database
-try {
-  const coupon = await couponModel.findOne({couponCode });
-  
-  
+  try {
+    const coupon = await couponModel.findOne({ couponCode });
 
-  if (!coupon) {
-    throw new Error('Invalid coupon code');
+    if (!coupon) {
+      throw new Error('Invalid coupon code');
+    }
+
+    if (coupon.expiry < new Date()) {
+      throw new Error('Coupon has expired');
+    }
+
+    if (coupon.status === false) {
+      throw new Error('This coupon is no longer active');
+    }
+
+    if (cartTotal < coupon.minimumPrice) {
+      throw new Error(`Cart total must be at least ₹${coupon.minimumPrice} to use this coupon`);
+    }
+
+    let discountAmount = (cartTotal * coupon.discount) / 100;
+
+    // Apply the lesser of discountAmount or maxRedeem
+    discountAmount = Math.min(discountAmount, coupon.maxRedeem);
+
+    if (discountAmount > cartTotal) {
+      discountAmount = cartTotal;
+    }
+
+    return { discountAmount, coupon };
+  } catch (error) {
+    console.error('Error on discount calculate:', error);
+    throw error;
   }
-
-  // Check if the coupon is expired
-  if (coupon.expirationDate < new Date()) {
-    throw new Error('Coupon has expired');
-  }
-
-  // Check if the coupon has reached its usage limit
-  if (coupon.usageCount >= coupon.maxUsage) {
-    throw new Error('Coupon usage limit reached');
-  }
-
-  // Calculate the discount amount
-  let discountAmount;
-  
-    discountAmount = (cartTotal * coupon.discount) / 100;
-  
-    
-  
-
-  // Apply maximum discount if applicable
-  if (coupon.maxRedeem && discountAmount > coupon.maxRedeem) {
-    discountAmount = coupon.maxRedeem;
-  }
-
-  // Ensure the discount doesn't exceed the cart total
-  if (discountAmount > cartTotal) {
-    discountAmount = cartTotal;
-  }
-
-  return discountAmount;
-} catch (error) {
-  console.error('error on discount caluclete>>>>>',error);
-  
-  
 }
-}
-
 
 async function applyDiscountToCart(userId, discountAmount, couponCode) {
-  // Find the user's cart
   const cart = await cartModel.findOne({ userId }).populate('items.productId');
 
   if (!cart) {
@@ -264,26 +257,39 @@ async function applyDiscountToCart(userId, discountAmount, couponCode) {
   const totalBeforeDiscount = cart.items.reduce((total, item) => {
     return total + (item.price * item.quantity);
   }, 0);
-  // Apply the discount
+
   cart.discount = discountAmount;
-
-  // Recalculate the total
   cart.Cart_total = totalBeforeDiscount - discountAmount;
+  cart.appliedCoupon = couponCode;  // Store the applied coupon code
 
-
-
-
-  // Save the updated cart
   await cart.save();
-
-  // Update the coupon usage count
-  await couponModel.findOneAndUpdate(
-    { code: couponCode },
-    { $inc: { usageCount: 1 } }
-  );
 
   return cart;
 }
+
+async function clearCoupon(userId) {
+  const cart = await cartModel.findOne({ userId });
+
+  if (!cart) {
+    throw new Error('Cart not found');
+  }
+
+  if (!cart.appliedCoupon) {
+    throw new Error('No coupon applied to remove');
+  }
+
+  const totalBeforeDiscount = cart.items.reduce((total, item) => {
+    return total + (item.price * item.quantity);
+  }, 0);
+
+  cart.discount = 0;
+  cart.Cart_total = totalBeforeDiscount;
+  cart.appliedCoupon = null;  // Clear the applied coupon
+
+  await cart.save();
+
+  return cart;
+} 
 
 const checkStock = async (req, res) => {
   try {
@@ -305,4 +311,15 @@ const checkStock = async (req, res) => {
   }
 };
 
-module.exports = { postcart, getcart, postremove, postupdate,cartcount,applyCoupon,checkStock };
+const removeCoupon = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const updatedCart = await clearCoupon(userId);
+    res.json({ success: true, cart: updatedCart });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { postcart, getcart, postremove, postupdate,cartcount,applyCoupon,checkStock, removeCoupon};

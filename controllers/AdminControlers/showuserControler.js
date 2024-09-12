@@ -36,7 +36,7 @@ const postUsers = async (req, res) => {
 const putUsers = async (req, res) => {
     try {
       if (req.session.isAdmin) {
-        const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+        const user = await userModel.findByIdAndUpdate(req.params.id, req.body, {
           new: true,
         });
         if (!user) {
@@ -182,12 +182,14 @@ const putUsers = async (req, res) => {
   
       // Save the new user
       await newUser.save();
+      console.log('new user>>>>',newUser);
+      
   
       // Redirect to the admin dashboard or render a success view
       res.redirect("/admin/users");
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: "Internal server errorrrr" });
     }
   };
 

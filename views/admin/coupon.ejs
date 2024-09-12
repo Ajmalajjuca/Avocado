@@ -61,7 +61,7 @@
                     />
                   </div>
                   <div class="mb-4">
-                    <label for="maxRedeem" class="form-label">Max Redeem</label>
+                    <label for="maxRedeem" class="form-label">Max Redemptions</label>
                     <input
                       type="number"
                       placeholder="Enter maximum redemptions"
@@ -96,7 +96,6 @@
                       <tr>
                         <th>Coupon Code</th>
                         <th>Discount</th>
-                        <th>Type</th>
                         <th>Minimum Price</th>
                         <th>Max Redeem</th>
                         <th>Expiry</th>
@@ -110,7 +109,6 @@
                             <tr>
                               <td><%= coupon.couponCode %></td>
                               <td><%= coupon.discount %></td>
-                              <td><%= coupon.type %></td>
                               <td><%= coupon.minimumPrice %></td>
                               <td><%= coupon.maxRedeem %></td>
                               <td><%= new Date(coupon.expiry).toLocaleDateString() %></td>

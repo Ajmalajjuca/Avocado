@@ -284,7 +284,7 @@
         e.preventDefault();
         $('#reportModal').modal('show');
       });
-    
+  
       // Show/hide custom date range inputs based on report type selection
       $('#reportType').change(function() {
         if ($(this).val() === 'custom') {
@@ -293,17 +293,17 @@
           $('#customDateRange').hide();
         }
       });
-    
+  
       // Handle report generation
       $('#generateReport').click(function() {
         const reportType = $('#reportType').val();
         let startDate, endDate;
-    
+  
         if (reportType === 'custom') {
           startDate = $('#startDate').val();
           endDate = $('#endDate').val();
         }
-    
+  
         // Send AJAX request to generate report
         $.ajax({
           url: '/admin/generate-report',
@@ -317,25 +317,38 @@
             // Handle successful report generation
             console.log('Report generated:', response);
             if (response.success) {
-        window.location.href = '/admin/report';
-      } else {
-        alert('Error generating report. Please try again.');
-      }
-            // You can show a success message or redirect to the report page
-            alert('Report generated successfully!');
-            $('#reportModal').modal('hide');
+              window.location.href = '/admin/report';
+            } else {
+              swal({
+                title: "Error",
+                text: "Error generating report. Please try again.",
+                icon: "error",
+              });
+            }
+  
+            // Show SweetAlert success message
+            swal({
+              title: "Success",
+              text: "Report generated successfully!",
+              icon: "success",
+            }).then(() => {
+              $('#reportModal').modal('hide');
+            });
           },
           error: function(error) {
-            // Handle error
+            // Handle error with SweetAlert
             console.error('Error generating report:', error);
-            alert('Error generating report. Please try again.');
+            swal({
+              title: "Error",
+              text: "Error generating report. Please try again.",
+              icon: "error",
+            });
           }
         });
       });
     });
-
-
-    </script>
+  </script>
+  
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         var chartElement = document.querySelector("#orderStatisticsChart");

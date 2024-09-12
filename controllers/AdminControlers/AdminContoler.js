@@ -88,7 +88,7 @@ const postLogin = async (req, res) => {
 
 const getDashboard = async (req, res) => {
   try {
-    if (req.session.isAdmin) {
+    
         const users = await userModel.findOne({isAdmin:false})
         const admin = req.session.admin;
         const totalSalesData = await orderModel.aggregate([
@@ -203,9 +203,7 @@ const topCategories = await orderModel.aggregate([
           topProducts,
           topCategories
         })
-    }else{
-        redirect("/admin")
-    }
+    
   } catch (err) {
         console.error("Error accuerd is getDashbard",err)
         req.flash("error", "something Went Wrong");

@@ -20,7 +20,8 @@ require('dotenv').config();
 
 
 
-  const connect = mongoose.connect("mongodb://localhost:27017/Avocado");
+  const connect = mongoose.connect(process.env.MONGODB_URL);
+  
 
   connect.then(()=>{
       console.log("User Database connected Successfully");
