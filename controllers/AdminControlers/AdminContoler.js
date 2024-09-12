@@ -18,7 +18,7 @@ const getLogin = async (req, res) => {
                 if (req.session.isAdmin) {
                         return res.redirect("/admin/dashboard");
                       } else {
-                       return res.render("admin/adminLogin",{error:req.flash("error")});
+                       return res.render("admin/Adminlogin",{error:req.flash("error")});
                       }
         }catch(err){
                 console.log("rendering error:",err);     
