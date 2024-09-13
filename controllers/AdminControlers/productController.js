@@ -64,7 +64,7 @@ const getAddProduct=async (req, res) => {
       if (req.session.isAdmin) {
         const categories = await categoryModel.find({});
         const admin = req.session.admin;
-        res.render("admin/addProducts", { categories, admin: admin.username, activePage: 'products' });
+        res.render("Admin/addProducts", { categories, admin: admin.username, activePage: 'products' });
       } else {
         res.redirect("/admin");
       }
