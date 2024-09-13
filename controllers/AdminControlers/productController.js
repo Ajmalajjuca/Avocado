@@ -37,7 +37,7 @@ const getProducts = async (req, res) => {
         const totalPages = Math.ceil(totalProducts / limit);
   
         const admin = req.session.admin;
-        res.render("admin/products", {
+        res.render("admin/Products", {
           products,
           admin: admin.username,
           categories,
