@@ -147,6 +147,8 @@ const placeOrder = async (req, res) => {
     }else if (paymentMethod === "razorpay") {
       
       const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+      console.log('req.boby>>>>',req.body);
+      
 
       if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
         console.log("Razorpay payment failed - missing details");
@@ -255,7 +257,9 @@ const verifyRazorpayPayment = (
     .update(sign.toString())
     .digest("hex");
 
+
   return razorpay_signature === expectedSignature;
+  
 };
 
 // New function to create Razorpay order

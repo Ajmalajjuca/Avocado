@@ -6,15 +6,6 @@ const path = require('path');
 const fs = require('fs').promises;
 
 
-
-
-
-
-
-
-
-
-
 const getProducts = async (req, res) => {
     try {
       if (req.session.isAdmin) {

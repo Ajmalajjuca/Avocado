@@ -103,7 +103,7 @@ router.get('/orders', orderController.getUserOrders);
 router.get('/orders/:orderId/details',orderController.getOrderid)
 router.post('/orders/:orderId/cancel',orderController.postOrderCancel)
 router.post('/orders/:orderId/return',orderController.postOrderReturn)
-router.post('/retry-payment/:orderId', orderController.retryPayment);
+router.post('/create-razorpay-order/:orderId', orderController.createRazorpayOrder);
 router.post('/verify-payment', orderController.verifyPayment);
 router.post('/cancel-product', orderController.cancelproduct);
 

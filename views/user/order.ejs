@@ -323,6 +323,21 @@
       height: 20px;
       z-index: 400;
     }
+
+    .retry-payment-btn {
+  background-color: #a76128;
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-left: 10px;
+}
+
+.retry-payment-btn:hover {
+  background-color: #886e21;
+}
     </style>
   </head>
   <body>
@@ -332,62 +347,61 @@
       <h2 class="orders-title">Your Orders</h2>
 
       <% if (orders.length > 0) { %>
-      <div class="orders-list">
-        <% orders.forEach(order => { %>
-        <div class="order-card">
-          <div class="order-header">
-            <div class="order-info">
-              <span class="order-id">Order #<%= order.orderId %></span>
-              <span class="order-date"
-                ><%= new Date(order.createdAt).toLocaleDateString() %></span
-              >
+        <div class="orders-list">
+          <% orders.forEach(order => { %>
+          <div class="order-card">
+            <div class="order-header">
+              <div class="order-info">
+                <span class="order-id">Order #<%= order.orderId %></span>
+                <span class="order-date"><%= new Date(order.createdAt).toLocaleDateString() %></span>
+              </div>
+              <div class="order-status <%= order.paymentstatus === 'Failed' ? 'status-failed' : `status-${order.status.toLowerCase()}` %>">
+                <%= order.paymentstatus === 'Failed' ? 'Payment Failed' : order.status %>
+              </div>
             </div>
-            <div class="order-status status-<%= order.status.toLowerCase() %>">
-              <%= order.status %>
+            <div class="order-summary">
+              <div class="order-total">
+                Total: ₹<%= order.amount.toFixed(2) %>
+              </div>
+              <div>
+                <a href="/invoice/<%= order._id %>" class="view-details-btn">View Invoice</a>
+        
+                <a
+                  href="javascript:void(0);"
+                  class="view-details-btn"
+                  onclick="showOrderDetails('<%= order._id %>')"
+                  >View Details</a
+                >
+        
+                <% if (order.paymentstatus === 'Failed') { %>
+                  <button
+                    class="retry-payment-btn"
+                    onclick="retryPayment('<%= order._id %>')"
+                  >
+                    Retry Payment
+                  </button>
+                <% } else if (['pending', 'intransit', 'shipped'].includes(order.status.toLowerCase())) { %>
+                  <button
+                    id="cancelOrderBtn"
+                    class="cancel-order-btn"
+                    onclick="confirmCancelOrder('<%= order._id %>')"
+                  >
+                    Cancel Order
+                  </button>
+                <% } else if (order.status.toLowerCase() === 'delivered') { %>
+                  <button
+                    class="return-order-btn"
+                    onclick="confirmReturnOrder('<%= order._id %>')"
+                  >
+                    Return Order
+                  </button>
+                <% } %>
+              </div>
             </div>
           </div>
-          <div class="order-summary">
-            <div class="order-total">
-              Total: ₹<%= order.amount.toFixed(2) %>
-            </div>
-            <div>
-              <a href="/invoice/<%= order._id %>" class="view-details-btn">View Invoice</a>
-
-              <a
-                href="javascript:void(0);"
-                class="view-details-btn"
-                onclick="showOrderDetails('<%= order._id %>')"
-                >View Details</a
-              >
-
-
-              <% if (['pending', 'intransit',
-              'shipped'].includes(order.status.toLowerCase())) { %>
-              <button
-                id="cancelOrderBtn"
-                class="cancel-order-btn"
-                onclick="confirmCancelOrder('<%= order._id %>')"
-              >
-                Cancel Order
-              </button>
-              <% } else if (order.status.toLowerCase() === 'delivered') { %>
-              <button
-                class="return-order-btn"
-                onclick="confirmReturnOrder('<%= order._id %>')"
-              >
-                Return Order
-              </button>
-
-              <% } %>
-            </div>
-          </div>
-
-         
-          
+          <% }) %>
         </div>
-        <% }) %>
-      </div>
-      <% } else { %>
+        <% } else { %>
       <div class="no-orders">
         <p>You have no orders yet.</p>
         <a href="/" class="shop-now-btn">Start Shopping</a>
@@ -440,6 +454,7 @@
     <%- include('partials/footer'); %> <%- include('partials/foot'); %>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
       function showOrderDetails(orderId) {
         fetch(`/orders/${orderId}/details`)
@@ -790,6 +805,74 @@ function cancelProduct(productId, orderId) {
         });
     }
   });
+}
+
+
+function retryPayment(orderId, amount, orderNumber) {
+  fetch(`/create-razorpay-order/${orderId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  }).then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        var options = {
+          "key": data.razorpayKeyId, // Enter the Key ID generated from the Dashboard
+          "amount": amount * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+          "currency": "INR",
+          "name": "Avocado",
+          "description": `Payment for order ${orderNumber}`,
+          "image": "https://example.com/your_logo.png",
+          "order_id": data.razorpayOrderId,
+          "handler": function (response){
+            // Send the payment ID to your server to verify the payment
+            verifyPayment(response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature, orderId);
+          },
+          "prefill": {
+            "name": data.customerName,
+            "email": data.customerEmail,
+            "contact": data.customerPhone
+          },
+          "theme": {
+            "color": "#3399cc"
+          }
+        };
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+      } else {
+        Swal.fire('Error!', 'There was an issue creating the payment. Please try again.', 'error');
+      }
+    }).catch(error => {
+      Swal.fire('Error!', 'There was an issue creating the payment. Please try again...', 'error');
+    });
+}
+
+function verifyPayment(paymentId, orderId, signature, originalOrderId) {
+  fetch('/verify-payment', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      paymentId: paymentId,
+      orderId: orderId,
+      signature: signature,
+      originalOrderId: originalOrderId
+    })
+  }).then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        Swal.fire('Success!', 'Payment completed successfully!', 'success')
+          .then(() => {
+            window.location.reload();
+          });
+      } else {
+        Swal.fire('Error!', 'Payment verification failed. Please contact support.', 'error');
+      }
+    }).catch(error => {
+      Swal.fire('Error!', 'There was an issue verifying the payment. Please contact support.', 'error');
+    });
 }
 
 </script>

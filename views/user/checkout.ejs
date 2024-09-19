@@ -225,6 +225,14 @@
     .fade-in-up {
       animation: fadeInUp 0.5s ease-out;
     }
+    .status-failed {
+  background-color: #dc3545;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+}
 
   </style>
 </head>
@@ -402,7 +410,8 @@
         });
         return;
       }
-
+      console.log("paymentMethod.value>>>",paymentMethod.value);
+      
       switch (paymentMethod.value) {
         case 'razorpay':
           await handleRazorpayPayment();
@@ -448,7 +457,11 @@
     async function handleRazorpayPayment() {
       try {
         const response = await fetch('/create-razorpay-order', { method: 'POST' });
+        console.log('responce>>>>,',response);
+        
         const orderData = await response.json();
+        console.log('orderData>>>>',orderData);
+        
 
         const options = {
           "key": "<%= process.env.RAZORPAY_KEY_ID %>",
@@ -472,7 +485,11 @@
             "color": "#7FAD39"
           }
         };
+        console.log("options>>>",options);
+        
         const rzp1 = new Razorpay(options);
+        console.log("rzp1>>>",rzp1);
+        
         rzp1.open();
       } catch (error) {
         console.error('Error creating Razorpay order:', error);

@@ -1,8 +1,15 @@
+require("dotenv").config();
+
 const orderModel = require('../../models/orderModel')
 const userModel = require("../../models/userModel");
 const transactionModel = require('../../models/transactionModel');
 const productModel = require('../../models/productModel');
+const Razorpay = require("razorpay");
 
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 
 const getUserOrders = async (req, res) => {
@@ -287,5 +294,63 @@ if (item && !item.isCancelled) {
       res.status(500).json({ success: false, message: 'Server error' });
     }
   };
+
+
   
-  module.exports = { getOrderid,postOrderCancel,postOrderReturn,getUserOrders,retryPayment,verifyPayment ,cancelproduct};
+  const createRazorpayOrder = async (req, res) => {
+    try {
+      const { orderId } = req.params;
+  
+      // Find the order
+      const order = await orderModel.findById(orderId);
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+  
+      // Check if the order's payment status is 'Failed'
+      if (order.paymentstatus !== 'Failed') {
+        return res.status(400).json({ success: false, message: 'This order does not require payment retry' });
+      }
+  
+      // Find the user
+      const user = await userModel.findById(order.userId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+  
+      // Create a new Razorpay order
+      const razorpayOrder = await razorpay.orders.create({
+        amount: Math.round(order.amount * 100), // Razorpay expects amount in paise
+        currency: 'INR',
+        receipt: order.orderId,
+        payment_capture: 1,
+        notes: {
+          orderType: 'retry_payment',
+          originalOrderId: orderId
+        }
+      });
+  
+      // Update the order with the new Razorpay order ID
+      order.razorpay_order_id = razorpayOrder.id;
+      await order.save();
+  
+      // Send the response
+      res.json({
+        success: true,
+        razorpayOrderId: razorpayOrder.id,
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: 'INR',
+        orderId: order.orderId,
+        customerName: order.address.name,
+        customerEmail: order.address.email,
+        customerPhone: order.address.mobile,
+        userId: user._id.toString()
+      });
+    } catch (error) {
+      console.error('Error creating Razorpay order:', error);
+      res.status(500).json({ success: false, message: 'Error creating Razorpay order', error: error.message });
+    }
+  };
+  
+  module.exports = { getOrderid,postOrderCancel,postOrderReturn,getUserOrders,retryPayment,verifyPayment ,cancelproduct,createRazorpayOrder};
