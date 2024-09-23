@@ -89,6 +89,7 @@ router.post('/place-order', authMiddleware, findCartByUser, checkoutController.p
 // router.post('/update-order-status',authMiddleware,checkoutController.UpdateOrderStatus)
 // router.post('/cancel-order',authMiddleware,checkoutController.CancelOrder)
 router.post('/create-razorpay-order', authMiddleware, findCartByUser, checkoutController.createRazorpayOrder);
+router.post('/remove-coupon',checkoutController.removeCoupon);
 
 
 
@@ -104,7 +105,7 @@ router.get('/orders/:orderId/details',orderController.getOrderid)
 router.post('/orders/:orderId/cancel',orderController.postOrderCancel)
 router.post('/orders/:orderId/return',orderController.postOrderReturn)
 router.post('/create-razorpay-order/:orderId', orderController.createRazorpayOrder);
-router.post('/verify-payment', orderController.verifyPayment);
+router.post('/re-verify-payment', orderController.verifyPayment);
 router.post('/cancel-product', orderController.cancelproduct);
 
 

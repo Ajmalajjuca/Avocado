@@ -5,6 +5,7 @@ const addressModel = require("../../models/addressModel");
 const orderModel = require("../../models/orderModel");
 const productModel = require("../../models/productModel");
 const transactionModel = require('../../models/transactionModel')
+const cartModel = require('../../models/cartModel')
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
 
@@ -36,14 +37,16 @@ const getcheckout = async (req, res) => {
 
 const placeOrder = async (req, res) => {
   try {
-    const { addressId, paymentMethod,totalSavings } = req.body;
+    const { addressId, paymentMethod, totalSavings, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
     const cart = req.cart;
 
     let shippingAddress;
 
+    // Retrieve user and their address details
     const user = await userModel.findById(req.user._id).populate("address");
+
     if (addressId === "new") {
-      // Create new address
+      // Create new address if not found in user's saved addresses
       if (!user.address) {
         const newAddressDoc = new addressModel({
           userId: user._id,
@@ -74,37 +77,34 @@ const placeOrder = async (req, res) => {
 
       shippingAddress = newAddress;
     } else {
-      // Use existing address
+      // Use existing address from user's saved addresses
       shippingAddress = user.address.address[parseInt(addressId)];
       if (!shippingAddress) {
         return res.status(400).send("Invalid address selected");
       }
     }
 
-    // Check stock availability
+    // Check stock availability for each item in the cart
     for (let item of cart.items) {
       const product = await productModel.findById(item.productId);
       if (!product) {
-        return res
-          .status(404)
-          .send(`Product with ID ${item.productId} not found`);
+        return res.status(404).send(`Product with ID ${item.productId} not found`);
       }
       if (product.stock < item.quantity) {
-        return res
-          .status(400)
-          .send(`Insufficient stock for product: ${product.name}`);
+        return res.status(400).send(`Insufficient stock for product: ${product.name}`);
       }
     }
 
+    // Create an array of order items from cart items
     const orderItems = cart.items.map((item) => ({
       productId: item.productId,
       quantity: item.quantity,
       price: item.price,
     }));
 
-       // Create a new order with status "Pending"
-       const order = new orderModel({
-        userId: req.user._id,
+    // Create a new order with status "Pending"
+    const order = new orderModel({
+      userId: req.user._id,
       items: orderItems,
       address: shippingAddress,
       amount: cart.Cart_total,
@@ -112,85 +112,84 @@ const placeOrder = async (req, res) => {
       createdAt: new Date(),
       updated: new Date(),
       status: "Pending",
-      paymentstatus: "Pending", // Set initial payment status to Pending
+      paymentstatus: "Pending", // Initial payment status is set to Pending
       totalSavings: parseFloat(totalSavings),
-      paymentRetryDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      });
+      paymentRetryDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24-hour payment retry period
+    });
 
-      await order.save();
-      console.log("Order created:", order._id);
-      
+    await order.save();
+    console.log("Order created:", order._id);
 
-    // Check if payment method is wallet
+    // Handling Wallet Payments
     if (paymentMethod === "wallet") {
       if (user.balance < cart.Cart_total) {
         return res.status(400).json({ success: false, message: "Insufficient Wallet Balance" });
       }
+
       // Deduct the amount from the wallet
       user.balance -= cart.Cart_total;
       await user.save();
 
+      // Record the wallet transaction
       const transaction = new transactionModel({
         userId: req.user._id,
         amount: cart.Cart_total,
         type: "debit",
         description: "Wallet payment for Order ",
         date: new Date(),
-        balance: user.balance, // Use the updated balance
+        balance: user.balance,
       });
       await transaction.save();
 
       order.paymentstatus = "Completed";
       await order.save();
 
-
-    }else if (paymentMethod === "razorpay") {
-      
-      const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
-      console.log('req.boby>>>>',req.body);
-      
-
+    } else if (paymentMethod === "razorpay") {
+      // Razorpay Payment Method
       if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
         console.log("Razorpay payment failed - missing details");
-        return res.status(200).json({ 
-          success: true, 
-          message: "Order created with pending payment", 
+        
+        // Update order status to "Failed"
+        order.paymentstatus = "Failed";
+        await order.save();
+
+        return res.status(200).json({
+          success: true,
+          message: "Order created with failed payment",
           orderId: order._id,
-          requiresPayment: true
-        });
-        }
-
-
-      
-      const isPaymentVerified = verifyRazorpayPayment(
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature
-      );
-
-      
-
-      if (!isPaymentVerified) {
-        console.log("Razorpay payment verification failed");
-        return res.status(200).json({ 
-          success: true, 
-          message: "Order created with pending payment", 
-          orderId: order._id,
-          requiresPayment: true
+          requiresPayment: true,
+          paymentstatus: order.paymentstatus,
         });
       }
 
+      // Verify Razorpay Payment
+      const isPaymentVerified = verifyRazorpayPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+
+      if (!isPaymentVerified) {
+        console.log("Razorpay payment verification failed");
+
+        // Update order status to "Failed"
+        order.paymentstatus = "Failed";
+        await order.save();
+
+        return res.status(200).json({
+          success: true,
+          message: "Order created with failed payment",
+          orderId: order._id,
+          requiresPayment: true,
+          paymentstatus: order.paymentstatus,
+        });
+      }
+
+      // If Payment Verification Succeeds
       order.paymentstatus = "Completed";
       order.razorpay_order_id = razorpay_order_id;
       order.razorpay_payment_id = razorpay_payment_id;
       await order.save();
       console.log("Razorpay payment successful");
     }
-    
 
-    
-
-    // Reduce stock quantities
+    // Reduce stock quantities if the payment is successful or method is COD
     if (order.paymentstatus === "Completed" || paymentMethod === "cod") {
       for (let item of cart.items) {
         const product = await productModel.findById(item.productId);
@@ -198,14 +197,16 @@ const placeOrder = async (req, res) => {
         await product.save();
       }
 
-    // Clear the user's cart
-    cart.items = [];
-    cart.Cart_total = 0;
-    cart.discount = 0
-    await cart.save();
+      // Clear the user's cart after successful order placement
+      cart.items = [];
+      cart.Cart_total = 0;
+      cart.discount = 0;
+      await cart.save();
 
-    res.redirect("/order-confirmation/" + order._id);
+      // Redirect to order confirmation page
+      res.redirect("/order-confirmation/" + order._id);
     }
+
   } catch (error) {
     console.error("Error placing order:", error);
     res.status(500).json("An error occurred while placing your order");
@@ -285,6 +286,40 @@ const createRazorpayOrder = async (req, res) => {
   }
 };
 
+const removeCoupon = async (req, res) => {
+  try {
+    const userId = req.session && req.session.user; // Assuming userId is stored in the session
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
+    // Find the user's cart
+    const cart = await cartModel.findOne({ userId });
+
+    if (!cart) {
+      return res.status(404).json({ success: false, message: 'Cart not found' });
+    }
+
+    // Remove the discount
+    cart.discount = 0;
+
+    // Recalculate the cart total (Cart_total should reflect total without discount)
+    let newCartTotal = 0;
+    cart.items.forEach(item => {
+      newCartTotal += item.Product_total;
+    });
+
+    cart.Cart_total = newCartTotal;
+
+    // Save the updated cart
+    await cart.save();
+
+    return res.json({ success: true, newTotal: cart.Cart_total });
+  } catch (error) {
+    console.error('Error removing coupon:', error);
+    return res.status(500).json({ success: false, message: 'Failed to remove coupon. Please try again.' });
+  }
+};
 
 
 
@@ -296,5 +331,6 @@ module.exports = {
   // UpdateOrderStatus,
   // CancelOrder,
   createRazorpayOrder,
+  removeCoupon,
   
 };

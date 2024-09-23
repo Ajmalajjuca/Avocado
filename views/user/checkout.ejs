@@ -329,6 +329,7 @@
               <div class="product-item text-success">
                 <span>Coupon Discount:</span>
                 <span>₹<%= cart.discount.toFixed(2) %></span>
+                <button type="button" id="remove-coupon" class="btn btn-sm btn-outline-danger ml-2">Remove Coupon</button>
               </div>
             <% } %>
             <div class="product-item text-success">
@@ -635,4 +636,57 @@
       }
     });
   });
+
+
+  document.addEventListener('DOMContentLoaded', function () {
+  const removeCouponButton = document.getElementById('remove-coupon');
+
+  if (removeCouponButton) {
+    removeCouponButton.addEventListener('click', async function () {
+      try {
+        const response = await fetch('/remove-coupon', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Update the discount and total values in the UI
+          document.querySelector('.product-item.text-success').remove();
+          document.querySelector('.total-amount span:last-child').textContent = `₹${result.newTotal.toFixed(2)}`;
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Coupon Removed',
+            text: 'Your coupon discount has been removed.',
+            confirmButtonText: 'OK',
+          }).then((result)=>{
+            if(result.isConfirmed){
+              window.location.reload();
+            }
+          })
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message,
+            confirmButtonText: 'OK',
+          });
+        }
+      } catch (error) {
+        console.error('Error removing coupon:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Something went wrong. Please try again.',
+          confirmButtonText: 'OK',
+        });
+      }
+    });
+  }
+});
+
 </script>
