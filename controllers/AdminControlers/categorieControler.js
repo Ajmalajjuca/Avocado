@@ -30,7 +30,6 @@ const postCreateCategory = async (req, res) => {
   try {
     if (req.session.isAdmin) {
       const { CategoryName, CategoryDescription } = req.body;
-      console.log("CategoryName>>>>",CategoryName,"CategoryDescription>>>>>",CategoryDescription);
       
       
       // Validation regex patterns

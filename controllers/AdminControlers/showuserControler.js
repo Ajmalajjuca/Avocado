@@ -182,7 +182,6 @@ const putUsers = async (req, res) => {
   
       // Save the new user
       await newUser.save();
-      console.log('new user>>>>',newUser);
       
   
       // Redirect to the admin dashboard or render a success view

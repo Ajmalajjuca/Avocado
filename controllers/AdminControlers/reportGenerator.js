@@ -52,33 +52,34 @@ async function generateReport(startDate, endDate) {
     statusCounts[order.status]++;
 
     return {
-        ...order,
-        createdAt: order.createdAt ? order.createdAt.toISOString() : new Date().toISOString(),
-        userName: order.userId && order.userId.username ? order.userId.username : 'N/A',
-        userEmail: order.userId && order.userId.email ? order.userId.email : 'N/A',
-        shippedTo: order.address ? 
-          `${order.address.street || ''}, ${order.address.city || ''}, ${order.address.state || ''}, ${order.address.pincode || ''}`.trim() : 
-          'N/A',
-        products: order.items && order.items.length > 0 ? order.items.map(item => ({
-          name: item.productId && item.productId.name ? item.productId.name : 'N/A',
-          rate: item.price || 0,
-          quantity: item.quantity || 0,
-          total: (item.price || 0) * (item.quantity || 0)
-        })) : [],
-        amount: order.amount || 0,
-        payment: order.payment || 'N/A',
-        status: order.status || 'N/A'
-      };
-    });
-    return {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        totalSales,
-        totalCouponAmount,
-        orderCount: orders.length,
-        statusCounts,
-        orders: processedOrders
-      };
+      orderId: order.orderId || 'N/A', // Include orderId
+      createdAt: order.createdAt ? order.createdAt.toISOString() : new Date().toISOString(),
+      userName: order.userId && order.userId.username ? order.userId.username : 'N/A',
+      userEmail: order.userId && order.userId.email ? order.userId.email : 'N/A',
+      shippedTo: order.address ? 
+        `${order.address.street || ''}, ${order.address.city || ''}, ${order.address.state || ''}, ${order.address.pincode || ''}`.trim() : 
+        'N/A',
+      products: order.items && order.items.length > 0 ? order.items.map(item => ({
+        name: item.productId && item.productId.name ? item.productId.name : 'N/A',
+        rate: item.price || 0,
+        quantity: item.quantity || 0,
+        total: (item.price || 0) * (item.quantity || 0)
+      })) : [],
+      amount: order.amount || 0,
+      payment: order.payment || 'N/A',
+      status: order.status || 'N/A'
+    };
+  });
+
+  return {
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    totalSales,
+    totalCouponAmount,
+    orderCount: orders.length,
+    statusCounts,
+    orders: processedOrders
+  };
     }
 
 module.exports = {

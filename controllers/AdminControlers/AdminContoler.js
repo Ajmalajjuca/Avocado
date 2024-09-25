@@ -21,14 +21,14 @@ const getLogin = async (req, res) => {
                        return res.render("admin/Adminlogin",{error:req.flash("error")});
                       }
         }catch(err){
-                console.log("rendering error:",err);     
+                console.error("rendering error:",err);     
         }
   
 };
 const getLogout = async(req,res)=>{
     req.session.destroy((err)=>{
       if(err){
-        console.log("Logout error:",err);
+        console.error("Logout error:",err);
         return res.status(500).send("Unable to logout. Please try again.");
 
       }
@@ -283,7 +283,6 @@ const report = (req, res) => {
   if (!report) {
     return res.redirect('/admin/dashboard');
   }
-  console.log('report>>>',report);
   
   res.render('admin/report', { 
     report,

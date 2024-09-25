@@ -5,6 +5,7 @@ const userModel = require("../../models/userModel");
 const transactionModel = require('../../models/transactionModel');
 const productModel = require('../../models/productModel');
 const Razorpay = require("razorpay");
+const crypto = require('crypto');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -21,6 +22,7 @@ const getUserOrders = async (req, res) => {
         return res.status(404).send('User not found');
       }
       
+      // Fetch orders of the logged-in user
       const orders = await orderModel.find({ userId: user._id })
         .populate({
           path: 'items.productId',
@@ -33,22 +35,23 @@ const getUserOrders = async (req, res) => {
         })
         .sort({ createdAt: -1 })
         .exec();
-      
-      // Check if retry is still possible for pending payments
+
+      // Add 'allItemsCancelled' and 'canRetryPayment' flags for each order
       orders.forEach(order => {
-        if (order.paymentstatus === 'Pending' && order.paymentRetryDeadline > new Date()) {
-          order.canRetryPayment = true;
-        } else {
-          order.canRetryPayment = false;
-        }
+        // Check if all items are cancelled
+        order.allItemsCancelled = order.items.every(item => item.isCancelled);
+
+        // Check if retry is still possible for pending payments
+        order.canRetryPayment = (order.paymentstatus === 'Pending' && order.paymentRetryDeadline > new Date());
       });
-      
+
+      // Render the 'user/order' view with necessary data
       res.render('user/order', { 
         orders, 
-  user: user.username,
-  userEmail: user.email,
-  userMobile: user.mobile,
-  razorpayKeyId: process.env.RAZORPAY_KEY_ID
+        user: user.username,
+        userEmail: user.email,
+        userMobile: user.mobile,
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID
       });
     } else {
       res.redirect('/login'); 
@@ -59,25 +62,38 @@ const getUserOrders = async (req, res) => {
   }
 };
 
+
 const getOrderid = async (req, res) => {
-    try {
-      
-      // Find the order by ID
-      const order = await orderModel.findById(req.params.orderId)
-          .populate('userId')
-          .populate('items.productId') 
-          .exec();
-  
-      if (!order) {
-        return res.json({ success: false, message: 'Order not found' });
-      }
-  
-      res.json({ success: true, order });// Send order data as JSON
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Server error');
+  try {
+    // Find the order by ID and populate user and product details
+    const order = await orderModel.findById(req.params.orderId)
+      .populate('userId')
+      .populate('items.productId')
+      .exec();
+
+    if (!order) {
+      return res.json({ success: false, message: 'Order not found' });
     }
-  };
+
+    // Check if all items are cancelled
+    const allItemsCancelled = order.items.every(item => item.isCancelled);
+
+    // If all items are cancelled, update the order status to 'Cancelled'
+    if (allItemsCancelled && order.status !== 'Cancelled') {
+      order.status = 'Cancelled';
+      await order.save(); // Save the updated status in the database
+    }
+
+    // Send the order data and allItemsCancelled flag as JSON
+    res.json({ success: true, order, allItemsCancelled });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
+};
+
+
+
   
 const postOrderCancel  = async (req, res) => {
     try {
@@ -219,12 +235,14 @@ const postOrderCancel  = async (req, res) => {
 
   const verifyPayment = async (req, res) => {
     try {
-      const { orderId, paymentId, razorpayOrderId, signature } = req.body;
-  
+      const { originalOrderId, paymentId, razorpayOrderId, signature } = req.body;
+      
       const isPaymentVerified = verifyRazorpayPayment(razorpayOrderId, paymentId, signature);
   
       if (isPaymentVerified) {
-        const order = await orderModel.findById(orderId);
+        
+        const order = await orderModel.findById(originalOrderId); 
+         // Use original order ID to find the order
         order.paymentstatus = 'Completed';
         order.razorpay_payment_id = paymentId;
         order.razorpay_order_id = razorpayOrderId;
@@ -239,6 +257,25 @@ const postOrderCancel  = async (req, res) => {
       res.status(500).json({ success: false, message: 'An error occurred while verifying payment' });
     }
   };
+  
+
+  const verifyRazorpayPayment = (razorpayOrderId, paymentId, signature) => {
+    try {
+      const secret = process.env.RAZORPAY_KEY_SECRET; // Replace with your Razorpay secret key
+  
+      // Create the hash (signature) using HMAC SHA256
+      const generatedSignature = crypto.createHmac('sha256', secret)
+        .update(razorpayOrderId + '|' + paymentId)
+        .digest('hex');
+  
+      // Compare the generated signature with the one provided by Razorpay
+      return generatedSignature === signature;
+    } catch (error) {
+      console.error('Error verifying Razorpay payment signature:', error);
+      return false;
+    }
+  };
+
   const cancelproduct =  async (req, res) => {
     try {
       const { productId, orderId, reason } = req.body;

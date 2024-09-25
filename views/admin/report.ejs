@@ -93,7 +93,7 @@
                 <tbody>
                     <% report.orders.forEach(order => { %>
                         <tr>
-                            <td><%= order.orderId %></td>
+                            <td><%= order.orderId||'N/A' %></td>
                             <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
                             <td><%= order.userName || 'N/A' %><br><small><%= order.userEmail || 'N/A' %></small></td>
                             <td><%= order.shippedTo || 'N/A' %></td>

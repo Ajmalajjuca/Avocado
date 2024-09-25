@@ -44,7 +44,6 @@ const postcart = async (req, res) => {
       return item.productId._id.toString() === productId;
     });
 
-    console.log('Product index is >>>', productIndex);
 
     if (productIndex > -1) {
       // Update existing item

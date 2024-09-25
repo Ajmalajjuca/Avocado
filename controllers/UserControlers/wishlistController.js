@@ -10,7 +10,6 @@ const userModel = require('../../models/userModel');
       const user = await userModel.findById(req.user._id).populate("address");
       const userId = req.user._id;
       let wishlist = await Wishlistmodel.findOne({ userId }).populate('items.productId');
-      console.log("Wishlist is >>>>>",wishlist);
       
       if (!wishlist) {
         wishlist = new Wishlistmodel({ userId, items: [] });

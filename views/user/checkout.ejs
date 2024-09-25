@@ -411,7 +411,6 @@
         });
         return;
       }
-      console.log("paymentMethod.value>>>",paymentMethod.value);
       
       switch (paymentMethod.value) {
         case 'razorpay':
@@ -458,10 +457,8 @@
     async function handleRazorpayPayment() {
       try {
         const response = await fetch('/create-razorpay-order', { method: 'POST' });
-        console.log('responce>>>>,',response);
         
         const orderData = await response.json();
-        console.log('orderData>>>>',orderData);
         
 
         const options = {
@@ -469,6 +466,7 @@
           "amount": orderData.amount,
           "currency": orderData.currency,
           "name": "Avocado",
+          
           "description": "Order Payment",
           "order_id": orderData.orderId,
           "handler": function(response) {
@@ -486,10 +484,8 @@
             "color": "#7FAD39"
           }
         };
-        console.log("options>>>",options);
         
         const rzp1 = new Razorpay(options);
-        console.log("rzp1>>>",rzp1);
         
         rzp1.open();
       } catch (error) {

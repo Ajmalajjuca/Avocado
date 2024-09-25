@@ -345,7 +345,7 @@
 
     <div class="container">
       <h2 class="orders-title">Your Orders</h2>
-
+    
       <% if (orders.length > 0) { %>
         <div class="orders-list">
           <% orders.forEach(order => { %>
@@ -355,24 +355,32 @@
                 <span class="order-id">Order #<%= order.orderId %></span>
                 <span class="order-date"><%= new Date(order.createdAt).toLocaleDateString() %></span>
               </div>
-              <div class="order-status <%= order.paymentstatus === 'Failed' ? 'status-failed' : `status-${order.status.toLowerCase()}` %>">
-                <%= order.paymentstatus === 'Failed' ? 'Payment Failed' : order.status %>
+          
+              <% 
+              // Determine the display status
+              const displayStatus = order.allItemsCancelled ? 'Cancelled' : order.paymentstatus === 'Failed' ? 'Payment Failed' : order.status;
+              const statusClass = order.allItemsCancelled ? 'status-cancelled' : order.paymentstatus === 'Failed' ? 'status-failed' : `status-${order.status.toLowerCase()}`;
+              %>
+          
+              <div class="order-status <%= statusClass %>">
+                <%= displayStatus %>
               </div>
             </div>
+            
             <div class="order-summary">
               <div class="order-total">
                 Total: ₹<%= order.amount.toFixed(2) %>
               </div>
               <div>
                 <a href="/invoice/<%= order._id %>" class="view-details-btn">View Invoice</a>
-        
+    
                 <a
                   href="javascript:void(0);"
                   class="view-details-btn"
                   onclick="showOrderDetails('<%= order._id %>')"
                   >View Details</a
                 >
-        
+    
                 <% if (order.paymentstatus === 'Failed') { %>
                   <button
                     class="retry-payment-btn"
@@ -380,7 +388,9 @@
                   >
                     Retry Payment
                   </button>
-                <% } else if (['pending', 'intransit', 'shipped'].includes(order.status.toLowerCase())) { %>
+                <% } %>
+    
+                <% if (!order.allItemsCancelled && order.paymentstatus !== 'Failed' && ['pending', 'intransit', 'shipped'].includes(order.status.toLowerCase())) { %>
                   <button
                     id="cancelOrderBtn"
                     class="cancel-order-btn"
@@ -388,7 +398,9 @@
                   >
                     Cancel Order
                   </button>
-                <% } else if (order.status.toLowerCase() === 'delivered') { %>
+                <% } %>
+    
+                <% if (order.status.toLowerCase() === 'delivered') { %>
                   <button
                     class="return-order-btn"
                     onclick="confirmReturnOrder('<%= order._id %>')"
@@ -401,13 +413,15 @@
           </div>
           <% }) %>
         </div>
-        <% } else { %>
-      <div class="no-orders">
-        <p>You have no orders yet.</p>
-        <a href="/" class="shop-now-btn">Start Shopping</a>
-      </div>
+      <% } else { %>
+        <div class="no-orders">
+          <p>You have no orders yet.</p>
+          <a href="/" class="shop-now-btn">Start Shopping</a>
+        </div>
       <% } %>
     </div>
+    
+    
 
     <!--Modal -->
     <div
@@ -765,7 +779,12 @@ function confirmReturnOrder(orderId) {
   });
 }
 
-function cancelProduct(productId, orderId) {
+function cancelProduct(productId, orderId, event) {
+  // Prevent default form submission or other default actions if part of a form
+  if (event) {
+    event.preventDefault();
+  }
+
   Swal.fire({
     title: 'Cancel Product',
     text: 'Are you sure you want to cancel this product?',
@@ -793,7 +812,12 @@ function cancelProduct(productId, orderId) {
       }).then(response => response.json())
         .then(data => {
           if (data.success) {
-            Swal.fire('Cancelled!', 'Your product has been cancelled.', 'success');
+            Swal.fire('Cancelled!', 'Your product has been cancelled.', 'success')
+            .then(() => {
+                // Reload the page after user clicks OK on success message
+                window.location.reload();
+              });
+          
             // Update UI
             document.querySelector(`#product-${productId}`).classList.add('opacity-50');
             document.querySelector(`#product-${productId} .cancel-badge`).textContent = 'Cancelled';
@@ -806,6 +830,7 @@ function cancelProduct(productId, orderId) {
     }
   });
 }
+
 
 
 function retryPayment(orderId, amount, orderNumber) {
@@ -823,7 +848,7 @@ function retryPayment(orderId, amount, orderNumber) {
           "currency": "INR",
           "name": "Avocado",
           "description": `Payment for order ${orderNumber}`,
-          "image": "https://example.com/your_logo.png",
+          
           "order_id": data.razorpayOrderId,
           "handler": function (response){
             // Send the payment ID to your server to verify the payment
@@ -835,7 +860,7 @@ function retryPayment(orderId, amount, orderNumber) {
             "contact": data.customerPhone
           },
           "theme": {
-            "color": "#3399cc"
+            "color": "#7FAD39"
           }
         };
         var rzp1 = new Razorpay(options);
@@ -848,7 +873,7 @@ function retryPayment(orderId, amount, orderNumber) {
     });
 }
 
-function verifyPayment(paymentId, orderId, signature, originalOrderId) {
+function verifyPayment(paymentId, razorpayOrderId, signature, originalOrderId) {
   fetch('/re-verify-payment', {
     method: 'POST',
     headers: {
@@ -856,14 +881,13 @@ function verifyPayment(paymentId, orderId, signature, originalOrderId) {
     },
     body: JSON.stringify({
       paymentId: paymentId,
-      orderId: orderId,
+      razorpayOrderId: razorpayOrderId,  // Corrected parameter name
       signature: signature,
-      originalOrderId: originalOrderId
+      originalOrderId: originalOrderId // Pass the originalOrderId correctly
     })
   }).then(response => response.json())
     .then(data => {
-      console.log("data>>>>",data);
-      
+
       if (data.success) {
         Swal.fire('Success!', 'Payment completed successfully!', 'success')
           .then(() => {
@@ -876,6 +900,7 @@ function verifyPayment(paymentId, orderId, signature, originalOrderId) {
       Swal.fire('Error!', 'There was an issue verifying the payment. Please contact support.', 'error');
     });
 }
+
 
 </script>
   </body>

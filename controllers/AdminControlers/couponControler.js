@@ -14,7 +14,7 @@ const getCoupon = async ( req,res)=>{
                 res.redirect("/admin");
               }
     } catch (error) {
-        console.log(error);
+        console.error(error);
         
     }
 }
