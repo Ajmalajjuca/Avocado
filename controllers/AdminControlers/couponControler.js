@@ -24,7 +24,7 @@ const postCreateCoupon = async (req, res) => {
       const { couponCode, discount, minimumPrice, maxRedeem, expiry } = req.body;
   
       // Validation
-      if (!couponCode || discount < 0 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
+      if (!couponCode || discount < 0 ||discount > 90 || minimumPrice < 0 || maxRedeem < 0 || !expiry) {
         return res.status(400).json({ success: false, message: 'Invalid input data' });
       }
   
