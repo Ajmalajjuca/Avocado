@@ -624,7 +624,6 @@
     
         // Add to wishlist functionality
         function addToWishlist(productId) {
-          console.log('Adding to wishlist:', productId);
           fetch('/wishlist/add', {
             method: 'POST',
             headers: {
@@ -634,7 +633,6 @@
           })
           .then(response => response.json())
           .then(data => {
-            console.log('Wishlist response data:', data);
             if (data.success) {
               Swal.fire({
                 icon: 'success',

@@ -258,7 +258,6 @@ async function removeFromCart(productId) {
         });
 
         const data = await response.json();
-        console.log('Server response:', data);
 
         if (data.success) {
             updateCartDisplay(data.cart);
@@ -289,7 +288,6 @@ async function updateQuantity(productId, quantity) {
         });
 
         const data = await response.json();
-        console.log('Server response:', data);
 
         if (data.success) {
             updateCartDisplay(data.cart);

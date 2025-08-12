@@ -632,7 +632,6 @@ const postLogin = async (req, res) => {
     if (isPasswordMatch) {
       req.session.isAuth = true;
       req.session.user = user;
-      console.log("login user is:",user);
       
       return res.redirect("/");
     } else {
@@ -671,7 +670,6 @@ const transporter = nodemailer.createTransport({
 
 const  submitContact =  async (req, res) => {
   try {
-    console.log('Received data:', req.body); // Log received data for debugging
 
     const { name, email, message } = req.body;
 

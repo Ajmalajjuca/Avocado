@@ -83,7 +83,6 @@ const getAddProduct=async (req, res) => {
         const imageKey = `croppedImage${i}`;
         if (req.body[imageKey]) {
           if (typeof req.body[imageKey] === "string") {
-            console.log(`Processing cropped image for key: ${imageKey}`);
             const croppedImageBuffer = Buffer.from(
               req.body[imageKey].replace(/^data:image\/\w+;base64,/, ""),
               "base64"
@@ -96,13 +95,11 @@ const getAddProduct=async (req, res) => {
                 quality: 100
               })
               .toFile(croppedImagePath);
-            console.log(`Cropped image saved at: ${croppedImagePath}`);
             croppedImages.push(`/uploads/${croppedImageFilename}`);
           } else {
             console.error(`req.body[imageKey] is not a string: `, req.body[imageKey]);
           }
         } else {
-          console.log(`Processing original image: ${images[i].filename}`);
           const originalImagePath = path.join(imagesDir, `cropped_${Date.now()}_${images[i].originalname}`);
           await sharp(images[i].path)
             .resize(2000, 2000, {
@@ -110,12 +107,10 @@ const getAddProduct=async (req, res) => {
               quality: 100
             })
             .toFile(originalImagePath);
-          console.log(`Resized original image saved at: ${originalImagePath}`);
           croppedImages.push(`/uploads/${path.basename(originalImagePath)}`);
         }
       }
   
-      console.log("Cropped Images Array: ", croppedImages);
   
       const newProduct = new productModel({
         name: productname,
@@ -129,7 +124,6 @@ const getAddProduct=async (req, res) => {
   
       await newProduct.save();
   
-      console.log("Product saved successfully");
   
       res.redirect("/admin/products");
     } catch (error) {

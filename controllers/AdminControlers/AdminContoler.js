@@ -46,7 +46,6 @@ const postLogin = async (req, res) => {
             const user = await userModel.findOne({ email });
       
             // Logging for debugging
-            console.log("User: ", user);
       
             if (!user) {
               req.flash("error", "Invalid email");

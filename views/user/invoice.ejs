@@ -241,14 +241,12 @@
   }
 })
 .then(response => {
-  console.log('Response status:', response.status);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   return response.json();
 })
 .then(data => {
-  console.log('Server response:', data);
   Swal.close();
   if (data.message === 'Invoice sent successfully') {
     toastr.success('Invoice sent successfully!');

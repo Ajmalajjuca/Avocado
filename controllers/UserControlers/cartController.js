@@ -35,19 +35,15 @@ const postcart = async (req, res) => {
 
     const cart = req.cart;
 
-    console.log('Cart items before findIndex:', JSON.stringify(cart.items, null, 2));
-    console.log('Looking for productId:', productId);
 
     const productIndex = cart.items.findIndex(item => {
-      console.log('Comparing item.productId:', item.productId, 'with productId:', productId);
-      console.log('Types - item.productId:', typeof item.productId, 'productId:', typeof productId);
+   
       return item.productId._id.toString() === productId;
     });
 
 
     if (productIndex > -1) {
       // Update existing item
-      console.log("Updating existing item");
       const newQuantity = Number(cart.items[productIndex].quantity) + Number(quantity);
       if (newQuantity > product.stock) {
         return res.status(400).json({ success: false, message: 'Not enough stock available', availableStock: product.stock });
@@ -58,7 +54,6 @@ const postcart = async (req, res) => {
       cart.items[productIndex].stock = product.stock;
     } else {
       // Add new item
-      console.log("Adding new item to cart");
       cart.items.push({
         productId: product._id,
         quantity: Number(quantity),
@@ -74,7 +69,6 @@ const postcart = async (req, res) => {
       // Validate cart before saving
       const validationError = cart.validateSync();
       if (validationError) {
-        console.error('Validation error:', validationError);
         return res.status(400).json({ success: false, message: 'Validation error', errors: validationError.errors });
       }
 

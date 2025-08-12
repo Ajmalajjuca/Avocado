@@ -163,7 +163,6 @@
     <script>
     async function removeFromWishlist(productId) {
     try {
-        console.log('Removing product from wishlist:', productId);
         const response = await fetch('/wishlist/remove', {
             method: 'POST',
             headers: {
@@ -173,7 +172,6 @@
         });
 
         const data = await response.json();
-        console.log('Server response:', data);
 
         if (data.success) {
             updateWishlistDisplay(data.wishlist);
@@ -189,7 +187,6 @@
 
 async function addToCart(productId) {
     try {
-        console.log('Adding product to cart:', productId);
         const response = await fetch('/cart/add', {
             method: 'POST',
             headers: {
@@ -199,7 +196,6 @@ async function addToCart(productId) {
         });
 
         const data = await response.json();
-        console.log('Server response:', data);
 
         if (data.success) {
             showToast('success', 'Product added to cart successfully!');
@@ -213,7 +209,6 @@ async function addToCart(productId) {
         });
 
         const data = await response.json();
-        console.log('Server response:', data);
 
         if (data.success) {
             updateWishlistDisplay(data.wishlist);

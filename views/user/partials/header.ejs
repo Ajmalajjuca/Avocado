@@ -191,7 +191,6 @@
       return response.json();
     })
     .then(data => {
-      console.log('Cart data:', data); // For debugging
       const cartCounts = document.querySelectorAll('.cart-count');
       cartCounts.forEach(count => {
         count.textContent = data.itemCount || '0';
@@ -254,7 +253,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
-            console.log('Wishlist data:', data); // For debugging
             const wishlistCounts = document.querySelectorAll('.wishlist-count');
             wishlistCounts.forEach(count => {
                 count.textContent = data.itemCount || '0';

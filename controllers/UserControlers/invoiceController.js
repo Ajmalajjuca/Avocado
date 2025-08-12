@@ -45,7 +45,6 @@ const downloadInvoice = async (req, res) => {
       // Send the email with the PDF attachment
       await sendInvoiceEmail({ ...invoiceData, pdfBuffer });
       
-      console.log('Invoice sent successfully for order:', orderId);
       res.status(200).json({ message: 'Invoice sent successfully' });
         } catch (error) {
           console.error('Error sending invoice:', error);

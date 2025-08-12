@@ -424,7 +424,6 @@ async function addToWishlist(productId) {
     async function updateQuantity(productId, quantity) {
         
   try {
-    console.log('Updating product:', productId, 'to quantity:', quantity);
     const response = await fetch('/cart/update', {
       method: 'POST',
       headers: {
@@ -434,7 +433,6 @@ async function addToWishlist(productId) {
     });
 
     const data = await response.json();
-    console.log('Server response:', data);
 
     if (data.success) {
       updateCartDisplay(data.cart);

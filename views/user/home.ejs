@@ -404,7 +404,6 @@
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         function checkUserStatus() {
-          console.log("Checking user status...");
           fetch("/check-user-status")
             .then((response) => response.json())
             .then((data) => {

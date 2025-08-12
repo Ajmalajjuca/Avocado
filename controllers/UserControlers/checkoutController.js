@@ -118,7 +118,6 @@ const placeOrder = async (req, res) => {
     });
 
     await order.save();
-    console.log("Order created:", order._id);
 
     // Handling Wallet Payments
     if (paymentMethod === "wallet") {
@@ -147,7 +146,6 @@ const placeOrder = async (req, res) => {
     } else if (paymentMethod === "razorpay") {
       // Razorpay Payment Method
       if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
-        console.log("Razorpay payment failed - missing details");
         
         // Update order status to "Failed"
         order.paymentstatus = "Failed";
@@ -166,7 +164,6 @@ const placeOrder = async (req, res) => {
       const isPaymentVerified = verifyRazorpayPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature);
 
       if (!isPaymentVerified) {
-        console.log("Razorpay payment verification failed");
 
         // Update order status to "Failed"
         order.paymentstatus = "Failed";
@@ -186,7 +183,6 @@ const placeOrder = async (req, res) => {
       order.razorpay_order_id = razorpay_order_id;
       order.razorpay_payment_id = razorpay_payment_id;
       await order.save();
-      console.log("Razorpay payment successful");
     }
 
     // Reduce stock quantities if the payment is successful or method is COD
